@@ -1,0 +1,2 @@
+export const GET_CHEAT_CODE = 'GET_CHEAT_CODE';
+export const CHEAT_CODE_ERROR = 'CHEAT_CODE_ERROR';
