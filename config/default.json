@@ -1,0 +1,4 @@
+{
+  "mongoURI": "mongodb+srv://linggo_api_user:s9W6lMnqR2@cluster0.47zkw.mongodb.net/sample_airbnb?retryWrites=true&w=majority",
+  "jwtSecret": "mysecrettoken"
+}
