@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
-const { check, validationResult } = require('express-validator');
+const { check, validationResult, header } = require('express-validator');
 
 const User = require('../../models/User');
 
@@ -10,7 +10,7 @@ const User = require('../../models/User');
 // @access  Public
 router.post('/', auth.verifyJWTToken,
 [
-  check('uid', 'uid is required').not().isEmpty(),
+  header('uid', 'uid is required').not().isEmpty(),
   check('username', 'Name is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -19,8 +19,9 @@ async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
+  const uid = req.header('uid');
+
   const {
-    uid,
     username,
     profilePicture,
     playtimeLifetime,
@@ -58,56 +59,63 @@ async (req, res) => {
     achievements,
   } = req.body;
 
+  const userData = {
+    uid,
+    username,
+    profilePicture,
+    playtimeLifetime,
+    learnTimeLifetime,
+    signUpMethod,
+    hasFinishedOnBoarding,
+    onBoardingStep,
+    installTime,
+    onBoardingCompleteTime,
+    reviewButtonUnlocked,
+    gdprConfirmed,
+    globalRank,
+    lifetimeEXP,
+    coins,
+    coinsSpent,
+    coinsLifetime,
+    dailyGoal,
+    dailyStreak,
+    dailyStreakLongest,
+    totalWordsUnlocked,
+    totalQuestionsUnlocked,
+    totalUnitsUnlocked,
+    streakFreezeUseCount,
+    comboShieldUseCount,
+    adRequestVideoAdCount,
+    adWatchVideoAdCount,
+    adRequestNativeAdCount,
+    adWatchNativeAdCount,
+    adRequestInterstitialAdCount,
+    adWatchInterstitialAdCount,
+    adRequestTotalAdCount,
+    adWatchTotalAdCount,
+    langLevels,
+    inventory,
+    achievements,
+  }
+
   try {
     // Check is user already exists
-    let user = await User.findOne({ uid });
+    let user = await User.findOne({ uid: uid });
 
+    // If user exists, update
     if (user) {
-      return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
-    }
-
-    user = new User({
-      uid,
-      username,
-      profilePicture,
-      playtimeLifetime,
-      learnTimeLifetime,
-      signUpMethod,
-      hasFinishedOnBoarding,
-      onBoardingStep,
-      installTime,
-      onBoardingCompleteTime,
-      reviewButtonUnlocked,
-      gdprConfirmed,
-      globalRank,
-      lifetimeEXP,
-      coins,
-      coinsSpent,
-      coinsLifetime,
-      dailyGoal,
-      dailyStreak,
-      dailyStreakLongest,
-      totalWordsUnlocked,
-      totalQuestionsUnlocked,
-      totalUnitsUnlocked,
-      streakFreezeUseCount,
-      comboShieldUseCount,
-      adRequestVideoAdCount,
-      adWatchVideoAdCount,
-      adRequestNativeAdCount,
-      adWatchNativeAdCount,
-      adRequestInterstitialAdCount,
-      adWatchInterstitialAdCount,
-      adRequestTotalAdCount,
-      adWatchTotalAdCount,
-      langLevels,
-      inventory,
-      achievements,
-    });
-
+      user = await User.findOneAndUpdate(
+        { uid: user.uid }, // find by uid
+        { $set: userData }, // update all userData
+        { new: true }
+      );
+      return res.json(user);
+    } 
+    
+    // If user does not already exist, create
+    user = new User(userData);
     await user.save(); // save user to database
-
-    res.sendStatus(200);
+    res.status(200).send(user);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
