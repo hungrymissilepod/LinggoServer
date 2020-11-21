@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const { check, validationResult, header } = require('express-validator');
 
-const User = require('../../models/User');
+const UserDataGlobal = require('../../models/User');
 
 // @route   POST api/user/
 // @desc    Add user data to database
@@ -100,11 +100,11 @@ async (req, res) => {
 
   try {
     // Check is user already exists
-    let user = await User.findOne({ uid: uid });
+    let user = await UserDataGlobal.findOne({ uid: uid });
 
     // If user exists, update
     if (user) {
-      user = await User.findOneAndUpdate(
+      user = await UserDataGlobal.findOneAndUpdate(
         { uid: user.uid }, // find by uid
         { $set: userData }, // update all userData
         { new: true }
@@ -113,7 +113,7 @@ async (req, res) => {
     } 
     
     // If user does not already exist, create
-    user = new User(userData);
+    user = new UserDataGlobal(userData);
     await user.save(); // save user to database
     res.status(200).send(user);
   } catch (err) {
@@ -134,7 +134,7 @@ router.get('/:user_id', auth.verifyJWTToken, async (req, res) => {
   if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   try {
-    const data = await User.findOne({uid: user_id});
+    const data = await UserDataGlobal.findOne({uid: user_id});
     if (!data) return res.status(400).json({ msg: 'User data not found' });
     res.json(data);
   } catch (err) {

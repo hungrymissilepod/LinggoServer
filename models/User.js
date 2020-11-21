@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
+const UserDataGlobalSchema = new mongoose.Schema({
   uid: {
     type: String,
     required: true,
@@ -163,4 +163,4 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-module.exports = User = mongoose.model('user', UserSchema);
+module.exports = UserDataGlobal = mongoose.model('userDataGlobal', UserDataGlobalSchema);
