@@ -8,12 +8,13 @@ const app = express();
 connectDB();
 
 // Init Middleware
-app.use(express.json({ extended: false }));
+app.use(express.json({ extended: false, limit: '50mb' }));
 
 // Define routes
 app.use('/api/cheats', require('./routes/api/cheats'));
 app.use('/api/auth', require('./routes/api/auth'));
-app.use('/api/user', require('./routes/api/user'));
+app.use('/api/db/user', require('./routes/api/db/user'));
+app.use('/api/db/language', require('./routes/api/db/language'));
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {

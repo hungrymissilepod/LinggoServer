@@ -163,4 +163,4 @@ const UserDataGlobalSchema = new mongoose.Schema({
   },
 });
 
-module.exports = UserDataGlobal = mongoose.model('userDataGlobal', UserDataGlobalSchema);
+module.exports = UserDataGlobal = mongoose.model('userDataGlobal', UserDataGlobalSchema, 'UserDataGlobal');
