@@ -3,7 +3,6 @@ const config = require('config');
 
 function verifyJWTToken (req, res, next) {
   const token = req.header('x-auth-token');
-  console.log(token);
 
   // If request does not have a token
   if (!token) {
