@@ -15,6 +15,7 @@ app.use('/api/cheats', require('./routes/api/cheats'));
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/db/user', require('./routes/api/db/user'));
 app.use('/api/db/language', require('./routes/api/db/language'));
+app.use('/api/db/module', require('./routes/api/db/module'));
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {

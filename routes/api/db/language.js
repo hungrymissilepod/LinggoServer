@@ -64,7 +64,7 @@ async (req, res) => {
   }
 });
 
-// @route   GET api/db/language/
+// @route   GET api/db/language
 // @desc    Get user language data
 // @access  Private
 router.get('/', auth.verifyJWTToken,
@@ -141,7 +141,7 @@ async (req, res) => {
     // await LanguageModel.findOne({ uid: uid, words: { id: word_id }}, async function(err, data) {};
 
     // Try to find Word in array
-    // Find document with mathing user id and word with mathing word_id
+    // Find document with mathing user id and word with matching word_id
     await LanguageModel.findOne({ uid: uid, "words.id": word_id }, async function(err, data) {
       if(err) { return res.status(500).send(err.message); }
       if (data == null) { // if this word does not exist in document (not in array)
@@ -156,7 +156,6 @@ async (req, res) => {
         });
       }
     });
-
     return res.sendStatus(200);
   } catch (err) {
     console.error(err.message);
