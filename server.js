@@ -6,6 +6,10 @@ const connectDB = require('./db');
 var env_path = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env.dev';
 require('dotenv').config({ path: env_path });
 
+console.log('got dotenv');
+console.log(process.env.MONGO_URI);
+console.log(process.env.JWT_SECRET);
+
 const app = express();
 
 // Connect to database
