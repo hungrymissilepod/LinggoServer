@@ -272,6 +272,7 @@ async (req, res) => {
     uid,
     list,
   }
+  // console.log(userData);
 
   try {
     // Check is user dailyexp data already exists
@@ -289,6 +290,7 @@ async (req, res) => {
     
     // If data does not already exist, create
     data = new DailyEXP(userData);
+    console.log(data);
     await data.save(); // save data to database
     res.status(200).send(data);
   } catch (err) {

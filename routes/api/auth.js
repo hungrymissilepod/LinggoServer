@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const config = require('config');
 const auth = require('../../middleware/auth');
 
 // @route   GET api/auth/token
@@ -24,7 +23,7 @@ router.get('/token', (req, res) => {
 
   jwt.sign(
     payload,
-    config.get('jwtSecret'),
+    process.env.JWT_SECRET,
     {expiresIn: req.header('exp') },
   (err, token) => {
     if (err) throw err;

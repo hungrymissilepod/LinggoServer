@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const config = require('config');
 
 function verifyJWTToken (req, res, next) {
   const token = req.header('x-auth-token');
@@ -11,7 +10,7 @@ function verifyJWTToken (req, res, next) {
 
   // Verify token
   try {
-    const decoded = jwt.verify(token, config.get('jwtSecret'));
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.deviceId = decoded.deviceId; // get deviceId from token
     req.uid = decoded.uid; // get uid from token
     next();
@@ -23,7 +22,7 @@ function verifyJWTToken (req, res, next) {
 // Checks that this device is whitelisted
 function verifyWhiteListDevice (req, res, next) {
   const deviceId = req.header('deviceId');
-  var devices = config.get('whitelistDevices').split(',');
+  var devices = process.env.WHITELIST_DEVICES.split(',');
   var foundDeviceIdMatch = false;
   
   for (i = 0; i < devices.length; i++) {

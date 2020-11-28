@@ -1,6 +1,10 @@
 const express = require('express');
 const path = require('path');
-const connectDB = require('./config/db');
+const connectDB = require('./db');
+
+// Load .env config
+var env_path = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env.dev';
+require('dotenv').config({ path: env_path });
 
 const app = express();
 
