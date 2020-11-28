@@ -7,6 +7,8 @@ var env_path = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env.dev';
 require('dotenv').config({ path: env_path });
 
 console.log('got dotenv');
+console.log(process.env.NODE_ENV);
+console.log(env_path);
 console.log(process.env.MONGO_URI);
 console.log(process.env.JWT_SECRET);
 
