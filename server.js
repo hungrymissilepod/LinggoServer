@@ -4,7 +4,7 @@ const connectDB = require('./db');
 
 // Load .env config
 // var env_path = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env.dev';
-var env_path = process.env.NODE_ENV == '.env.dev';
+var env_path = '.env.dev';
 require('dotenv').config({ path: env_path });
 
 console.log('got dotenv');
