@@ -32,6 +32,9 @@ async (req, res) => {
 
   const uid = req.header('uid');
 
+  // Make sure uid from header matches uid from token. So user can only access their own data
+  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
   const {
     username,
     profilePicture,
@@ -176,25 +179,16 @@ async (req, res) => {
 
   const uid = req.header('uid');
 
+  // Make sure uid from header matches uid from token. So user can only access their own data
+  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
   const {
-    language,
-    exp,
-    level,
-    wordsUnlocked,
-    questionsUnlocked,
-    playtime,
-    levels,
+    languages,
   } = req.body;
 
   const userData = {
     uid,
-    language,
-    exp,
-    level,
-    wordsUnlocked,
-    questionsUnlocked,
-    playtime,
-    levels,
+    languages,
   }
 
   try {
@@ -264,6 +258,9 @@ async (req, res) => {
 
   const uid = req.header('uid');
 
+  // Make sure uid from header matches uid from token. So user can only access their own data
+  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
   const {
     list,
   } = req.body;
@@ -272,7 +269,6 @@ async (req, res) => {
     uid,
     list,
   }
-  // console.log(userData);
 
   try {
     // Check is user dailyexp data already exists
