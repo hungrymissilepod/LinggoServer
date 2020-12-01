@@ -226,7 +226,7 @@ async function postVocabLesson(res, uid, lesson, lesson_id) {
       });
     } else { // if this Lesson already exists in document
       // update this Lesson values
-      await ModuleModel.updateOne({ uid: uid, units: { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.vocabLessons.$": lesson } }, function(err, data) {
+      await ModuleModel.updateOne({ uid: uid, "lessons.vocabLessons": { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.vocabLessons.$": lesson } }, function(err, data) {
         if(err) { return res.status(500).send(err.message); }
       });
     }
@@ -242,7 +242,7 @@ async function postGrammarLesson(res, uid, lesson, lesson_id) {
         if(err) { return res.status(500).send(err.message); }
       });
     } else {
-      await ModuleModel.updateOne({ uid: uid, units: { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.grammarLessons.$": lesson } }, function(err, data) {
+      await ModuleModel.updateOne({ uid: uid, "lessons.grammarLessons": { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.grammarLessons.$": lesson } }, function(err, data) {
         if(err) { return res.status(500).send(err.message); }
       });
     }
@@ -258,7 +258,7 @@ async function postStudyLessons(res, uid, lesson, lesson_id) {
         if(err) { return res.status(500).send(err.message); }
       });
     } else {
-      await ModuleModel.updateOne({ uid: uid, units: { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.studyLessons.$": lesson } }, function(err, data) {
+      await ModuleModel.updateOne({ uid: uid, "lessons.studyLessons": { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.studyLessons.$": lesson } }, function(err, data) {
         if(err) { return res.status(500).send(err.message); }
       });
     }
