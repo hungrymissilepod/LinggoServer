@@ -125,7 +125,7 @@ async (req, res) => {
 
   // Get Unit data from body and params
   const unit = req.body;
-  const unit_id = parseInt(req.params.unit_id);
+  const unit_id = req.params.unit_id;
 
   // Make sure uid from header matches uid from token. So user can only access their own data
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });

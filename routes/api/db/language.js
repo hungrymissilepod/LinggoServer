@@ -138,9 +138,6 @@ async (req, res) => {
       doc = new LanguageModel({ uid: uid }); // create document
       await doc.save(); // save document to database
     }
-
-    // await LanguageModel.findOne({ uid: uid, words: { id: word_id }}, async function(err, data) {};
-
     // Try to find Word in array
     // Find document with mathing user id and word with matching word_id
     await LanguageModel.findOne({ uid: uid, "words.id": word_id }, async function(err, data) {
