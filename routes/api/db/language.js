@@ -64,12 +64,11 @@ async (req, res) => {
   }
 });
 
-// @route   GET api/db/language
-// @desc    Get user language data
+// @route   GET api/db/language/:user_id
+// @desc    Get user language data by user id
 // @access  Private
-router.get('/', auth.verifyJWTToken,
+router.get('/:user_id', auth.verifyJWTToken,
 [
-  header('uid', 'uid is required').not().isEmpty(),
   query('language', 'language param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -77,18 +76,20 @@ async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
+  // Get uid from JWTToken. We need to make sure users can only get their OWN data
+  const uid = req.uid;
+  // Get the user_id param from request
+  const user_id = req.params.user_id;
 
-  const uid = req.header('uid');
+  if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
+  
   const language = req.query.language;
   LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
 
-  // Make sure uid from header matches uid from token. So user can only access their own data
-  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
-
   try {
-    const data = await LanguageModel.findOne({uid: uid});
-    if (!data) return res.status(400).json({ msg: 'User data not found' });
-    res.json(data);
+    const data = await LanguageModel.findOne({uid: user_id});
+    if (!data) { return res.status(400).json({ msg: 'User data not found' }); }
+    return res.status(200).json(data);
   } catch (err) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {

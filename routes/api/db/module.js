@@ -64,13 +64,12 @@ async (req, res) => {
   }
 });
 
-// @route   GET api/db/module
+// @route   GET api/db/module/:user_id
 // @params  module (which module data we are getting)
 // @desc    Get module data
 // @access  Private
-router.get('/', auth.verifyJWTToken,
+router.get('/:user_id', auth.verifyJWTToken,
 [
-  header('uid', 'uid is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -78,13 +77,15 @@ async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
+  // Get uid from JWTToken. We need to make sure users can only get their OWN data
+  const uid = req.uid;
+  // Get the user_id param from request
+  const user_id = req.params.user_id;
 
-  const uid = req.header('uid');
+  if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
   const module = req.query.module;
-  ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to language from params
-
-  // Make sure uid from header matches uid from token. So user can only access their own data
-  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+  ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to module from params
 
   try {
     const data = await ModuleModel.findOne({uid: uid});
@@ -202,11 +203,11 @@ async (req, res) => {
       await doc.save(); // save document to database
     }
     switch (type) {
-      case "vocabLessons":
+      case "Vocab":
         return await postVocabLesson(res, uid, lesson, lesson_id);
-      case "grammarLessons":
+      case "Grammar":
         return await postGrammarLesson(res, uid, lesson, lesson_id);
-      case "studyLessons":
+      case "Study":
         return await postStudyLessons(res, uid, lesson, lesson_id);
     }
   } catch (err) {
