@@ -157,9 +157,9 @@ const UserDataGlobalSchema = new mongoose.Schema({
       completiongotCompletionRewardTimeTime : Number,
     }],
   }],
-  date: {
-    type: Date,
-    default: Date.now,
+  updated: {
+    type: Number,
+    required: true,
   },
 });
 

@@ -22,7 +22,8 @@ var langModel = mongoose.model('chineseLanguage', LanguageSchema);
 router.post('/global', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  check('username', 'Name is required').not().isEmpty(),
+  check('username', 'Username is required').not().isEmpty(),
+  check('updated', 'Updated time is required').not().isEmpty(),
 ],
 async (req, res) => {
   const errors = validationResult(req);
@@ -71,6 +72,7 @@ async (req, res) => {
     langLevels,
     inventory,
     achievements,
+    updated,
   } = req.body;
 
   const userData = {
@@ -110,6 +112,7 @@ async (req, res) => {
     langLevels,
     inventory,
     achievements,
+    updated,
   }
 
   try {
