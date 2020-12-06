@@ -14,6 +14,7 @@ var ModuleModel = mongoose.model('moduleModel', ModuleSchema, 'EnglishToChineseM
 router.post('/', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  header('updated', 'updated time is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -23,6 +24,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const updated = req.header('updated');
   const module = req.query.module;
   ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to language from params
 
@@ -46,23 +48,40 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      data = await ModuleModel.findOneAndUpdate(
-        { uid: data.uid }, // find by uid
-        { $set: userData }, // update all userData
-        { new: true }
-      );
-      return res.json(data);
+      data = await updateModuleData(data, userData);
+      return moduleDataUpdateTime(res, data, updated);
     }
-    
-    // If data does not already exist, create
-    data = new ModuleModel(userData);
-    await data.save(); // save data to database
-    res.status(200).send(data);
+    return res.status(200).send(createModuleData(data, userData, updated));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
+
+async function createModuleData(data, userData, updated) {
+  userData.updated = updated;
+  data = new ModuleModel(userData);
+  await data.save();
+  return data;
+}
+
+async function updateModuleData(data, userData) {
+  data = await ModuleModel.findOneAndUpdate(
+    { uid: data.uid }, // find by uid
+    { $set: userData }, // update all userData
+    { new: true }
+  );
+  return data;
+}
+
+async function moduleDataUpdateTime(res, data, updated) {
+  if (updated > data.updated) {
+    if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
+      data = await ModuleModel.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+    }
+  }
+  return res.json(data);
+}
 
 // @route   GET api/db/module/:user_id
 // @params  module (which module data we are getting)
@@ -111,6 +130,7 @@ async (req, res) => {
 router.post('/unit/:unit_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  header('updated', 'updated time is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -120,6 +140,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const updated = req.header('updated');
   const module = req.query.module;
   ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to language from params
 
@@ -131,31 +152,28 @@ async (req, res) => {
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   try {
-    // Check is user module document exists
-    let doc = await ModuleModel.findOne({ uid: uid });
+    // Check is user module data exists
+    let data = await ModuleModel.findOne({ uid: uid });
 
-    // If document does not exist
-    if (!doc) {
-      doc = new ModuleModel({ uid: uid }); // create document
-      await doc.save(); // save document to database
+    // If data does not exist
+    if (!data) {
+      data = await createModuleData(data, { uid: uid }, updated);
     }
     // Try to find Unit in array
-    // Find document with mathing user id and Unit with mathing unit_id
-    await ModuleModel.findOne({ uid: uid, "units.id": unit_id }, async function(err, data) {
+    // Find document with matching user id and Unit with matching unit_id
+    await ModuleModel.findOne({ uid: uid, "units.id": unit_id }, async function(err, result) {
       if(err) { return res.status(500).send(err.message); }
-      if (data == null) { // if this Unit does not exist in document (not in array)
-        // add this Unit to array
-        await ModuleModel.updateOne({ uid: uid }, { "$addToSet": { "units": unit } }, function(err, data) {
+      if (result == null) { // if this Unit does not exist in document (not in array), add it to array
+        await ModuleModel.updateOne({ uid: uid }, { "$addToSet": { "units": unit } }, function(err, d1) {
           if(err) { return res.status(500).send(err.message); }
         });
-      } else { // if this Unit already exists in document
-        // update this Unit values
-        await ModuleModel.updateOne({ uid: uid, units: { $elemMatch: { "id": unit_id } } }, { $set: { 'units.$': unit } }, function(err, data) {
+      } else { // if this Unit already exists in document, update its values
+        await ModuleModel.updateOne({ uid: uid, units: { $elemMatch: { "id": unit_id } } }, { $set: { 'units.$': unit } }, function(err, d2) {
           if(err) { return res.status(500).send(err.message); }
         });
-      }
+      } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
+      return await moduleDataUpdateTime(res, data, updated);
     });
-    return res.sendStatus(200);
   } catch (err) {
     console.error(err.message);
     return res.status(500).send('Server error');
@@ -173,6 +191,7 @@ async (req, res) => {
 router.post('/lesson/:type/:lesson_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  header('updated', 'updated time is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -182,6 +201,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const updated = req.header('updated');
   const module = req.query.module;
   ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to language from params
 
@@ -194,13 +214,12 @@ async (req, res) => {
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   try {
-    // Check is user module document exists
-    let doc = await ModuleModel.findOne({ uid: uid });
+    // Check is user module data exists
+    let data = await ModuleModel.findOne({ uid: uid });
 
-    // If document does not exist
-    if (!doc) {
-      doc = new ModuleModel({ uid: uid }); // create document
-      await doc.save(); // save document to database
+    // If data does not exist
+    if (!data) {
+      data = await createModuleData(data, { uid: uid }, updated);
     }
     switch (type) {
       case "Vocab":
@@ -210,6 +229,7 @@ async (req, res) => {
       case "Study":
         return await postStudyLessons(res, uid, lesson, lesson_id);
     }
+    return await moduleDataUpdateTime(res, data, updated);
   } catch (err) {
     console.error(err.message);
     return res.status(500).send('Server error');

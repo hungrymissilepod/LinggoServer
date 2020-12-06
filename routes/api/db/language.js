@@ -14,6 +14,7 @@ var LanguageModel = mongoose.model('languageModel', LanguageSchema, 'Chinese');
 router.post('/', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  header('updated', 'updated time is required').not().isEmpty(),
   query('language', 'language param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -23,6 +24,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const updated = req.header('updated');
   const language = req.query.language;
   LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
 
@@ -30,12 +32,18 @@ async (req, res) => {
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   const {
+    version,
+    build,
+    id,
     words,
     questions,
   } = req.body;
 
   const userData = {
     uid,
+    version,
+    build,
+    id,
     words,
     questions,
   }
@@ -46,23 +54,41 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      data = await LanguageModel.findOneAndUpdate(
-        { uid: data.uid }, // find by uid
-        { $set: userData }, // update all userData
-        { new: true }
-      );
-      return res.json(data);
+      data = await updateLanguageData(data, userData);
+      return languageDataUpdateTime(res, data, updated);
     }
-    
-    // If data does not already exist, create
-    data = new LanguageModel(userData);
-    await data.save(); // save data to database
-    res.status(200).send(data);
+    data = await createLanguageData(data, userData, updated);
+    res.status(200).json(data);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
+
+async function createLanguageData(data, userData, updated) {
+  userData.updated = updated;
+  data = new LanguageModel(userData);
+  await data.save();
+  return data;
+}
+
+async function updateLanguageData(data, userData) {
+  data = await LanguageModel.findOneAndUpdate(
+    { uid: data.uid }, // find by uid
+    { $set: userData }, // update all userData
+    { new: true }
+  );
+  return data;
+}
+
+async function languageDataUpdateTime(res, data, updated) {
+  if (updated > data.updated) {
+    if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
+      data = await LanguageModel.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+    }
+  }
+  return res.json(data);
+}
 
 // @route   GET api/db/language/:user_id
 // @desc    Get user language data by user id
@@ -110,6 +136,7 @@ async (req, res) => {
 router.post('/w/:word_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  header('updated', 'updated time is required').not().isEmpty(),
   query('language', 'language param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -119,6 +146,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const updated = req.header('updated');
   const language = req.query.language;
   LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
 
@@ -131,30 +159,27 @@ async (req, res) => {
 
   try {
     // Check is user language document exists
-    let doc = await LanguageModel.findOne({ uid: uid });
+    let data = await LanguageModel.findOne({ uid: uid });
 
     // If document does not exist
-    if (!doc) {
-      doc = new LanguageModel({ uid: uid }); // create document
-      await doc.save(); // save document to database
+    if (!data) {
+      data = await createLanguageData(data, { uid: uid }, updated);
     }
     // Try to find Word in array
     // Find document with mathing user id and word with matching word_id
-    await LanguageModel.findOne({ uid: uid, "words.id": word_id }, async function(err, data) {
+    await LanguageModel.findOne({ uid: uid, "words.id": word_id }, async function(err, result) {
       if(err) { return res.status(500).send(err.message); }
-      if (data == null) { // if this word does not exist in document (not in array)
-        // add this Word to array
-        await LanguageModel.updateOne({ uid: uid }, { "$addToSet": { "words": word } }, function(err, data) {
+      if (result == null) { // if this word does not exist in document (not in array), add this Word to array
+        await LanguageModel.updateOne({ uid: uid }, { "$addToSet": { "words": word } }, function(err, d1) {
           if(err) { return res.status(500).send(err.message); }
         });
-      } else { // if this Word already exists in document
-        // update this Word values
-        await LanguageModel.updateOne({ uid: uid, words: { $elemMatch: { "id": word_id } } }, { $set: { 'words.$': word } }, function(err, data) {
+      } else { // if this Word already exists in document, update this Word values
+        await LanguageModel.updateOne({ uid: uid, words: { $elemMatch: { "id": word_id } } }, { $set: { 'words.$': word } }, function(err, d2) {
           if(err) { return res.status(500).send(err.message); }
         });
-      }
+      } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
+      return languageDataUpdateTime(res, data, updated);
     });
-    return res.sendStatus(200);
   } catch (err) {
     console.error(err.message);
     return res.status(500).send('Server error');
@@ -172,6 +197,7 @@ async (req, res) => {
 router.post('/q/:question_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  header('updated', 'updated time is required').not().isEmpty(),
   query('language', 'language param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -181,6 +207,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const updated = req.header('updated');
   const language = req.query.language;
   LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
 
@@ -193,37 +220,32 @@ async (req, res) => {
 
   try {
     // Check is user language document exists
-    let doc = await LanguageModel.findOne({ uid: uid });
+    let data = await LanguageModel.findOne({ uid: uid });
 
     // If document does not exist
-    if (!doc) {
-      doc = new LanguageModel({ uid: uid }); // create document
-      await doc.save(); // save document to database
+    if (!data) {
+      data = await createLanguageData(data, { uid: uid }, updated);
     }
 
     // Try to find Question in array
     // Find document with mathing user id and question with mathing question_id
-    await LanguageModel.findOne({ uid: uid, "questions.id": question_id }, async function(err, data) {
+    await LanguageModel.findOne({ uid: uid, "questions.id": question_id }, async function(err, result) {
       if(err) { return res.status(500).send(err.message); }
-      if (data == null) { // if this question does not exist in document (not in array)
-        // add this Question to array
-        await LanguageModel.updateOne({ uid: uid }, { "$addToSet": { "questions": question } }, function(err, data) {
+      if (result == null) { // if this question does not exist in document (not in array), add this Question to array
+        await LanguageModel.updateOne({ uid: uid }, { "$addToSet": { "questions": question } }, function(err, d1) {
           if(err) { return res.status(500).send(err.message); }
         });
-      } else { // if this Question already exists in document
-        // update this Question values
-        await LanguageModel.updateOne({ uid: uid, questions: { $elemMatch: { "id": question_id } } }, { $set: { 'questions.$': question } }, function(err, data) {
+      } else { // if this Question already exists in document, update this Question values
+        await LanguageModel.updateOne({ uid: uid, questions: { $elemMatch: { "id": question_id } } }, { $set: { 'questions.$': question } }, function(err, d2) {
           if(err) { return res.status(500).send(err.message); }
         });
-      }
+      } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
+      return languageDataUpdateTime(res, data, updated);
     });
-    
-    return res.sendStatus(200);
   } catch (err) {
     console.error(err.message);
     return res.status(500).send('Server error');
   }
 });
-
 
 module.exports = router;

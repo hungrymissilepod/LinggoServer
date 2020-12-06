@@ -10,7 +10,19 @@ const ModuleSchema = new mongoose.Schema({
     type: Object,
   }],
   lessons: {
-    type: Object,
+    vocabLessons: [{
+      type: Object,
+    }],
+    grammarLessons: [{
+      type: Object,
+    }],
+    studyLessons: [{
+      type: Object,
+    }],
+  },
+  updated: {
+    type: Number,
+    required: true,
   },
 });
 

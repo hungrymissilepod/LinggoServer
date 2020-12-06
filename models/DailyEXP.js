@@ -9,6 +9,10 @@ const DailyEXPSchema = new mongoose.Schema({
   list: [{
     type: Object,
   }],
+  updated: {
+    type: Number,
+    required: true,
+  },
 });
 
 module.exports = DailyEXP = mongoose.model('dailyEXP', DailyEXPSchema, 'DailyEXP');

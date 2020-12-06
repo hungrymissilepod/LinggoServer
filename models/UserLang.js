@@ -9,6 +9,10 @@ const UserDataLangSchema = new mongoose.Schema({
   languages: [{
     type: Object,
   }],
+  updated: {
+    type: Number,
+    required: true,
+  },
 });
 
 module.exports = UserDataLang = mongoose.model('userDataLang', UserDataLangSchema, 'UserDataLang');

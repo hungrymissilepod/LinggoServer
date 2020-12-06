@@ -112,32 +112,44 @@ async (req, res) => {
     langLevels,
     inventory,
     achievements,
-    updated,
   }
 
   try {
     // Check is user already exists
-    let user = await UserDataGlobal.findOne({ uid: uid });
+    let data = await UserDataGlobal.findOne({ uid: uid });
 
     // If user exists, update
-    if (user) {
-      user = await UserDataGlobal.findOneAndUpdate(
-        { uid: user.uid }, // find by uid
-        { $set: userData }, // update all userData
-        { new: true }
-      );
-      return res.json(user);
+    if (data) {
+      return await updateUserGlobal(res, data, userData, updated);
     } 
-    
-    // If user does not already exist, create
-    user = new UserDataGlobal(userData);
-    await user.save(); // save user to database
-    res.status(200).send(user);
+    return await createUserGlobal(res, data, userData, updated);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
+
+async function createUserGlobal(res, data, userData, updated) {
+  userData.updated = updated;
+  data = new UserDataGlobal(userData);
+  await data.save();
+  return res.status(200).send(data);
+}
+
+async function updateUserGlobal(res, data, userData, updated) {
+  data = await UserDataGlobal.findOneAndUpdate(
+    { uid: data.uid }, // find by uid
+    { $set: userData }, // update all userData
+    { new: true }
+  );
+  // if [updated] time is greater than [updated] time on database, update it
+  if (updated > data.updated) {
+    if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
+      data = await UserDataGlobal.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+    }
+  }
+  return res.status(200).json(data);
+}
 
 // @route   GET api/db/user/global/:user_id
 // @desc    Get user global data by user id
@@ -173,6 +185,7 @@ router.get('/global/:user_id', auth.verifyJWTToken, async (req, res) => {
 router.post('/langdata', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  check('updated', 'Updated time is required').not().isEmpty(),
 ],
 async (req, res) => {
   const errors = validationResult(req);
@@ -187,6 +200,7 @@ async (req, res) => {
 
   const {
     languages,
+    updated,
   } = req.body;
 
   const userData = {
@@ -200,23 +214,36 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      data = await UserDataLang.findOneAndUpdate(
-        { uid: data.uid }, // find by uid
-        { $set: userData }, // update all userData
-        { new: true }
-      );
-      return res.json(data);
+      return await updateUserLang(res, data, userData, updated);
     }
-    
-    // If data does not already exist, create
-    data = new UserDataLang(userData);
-    await data.save(); // save data to database
-    res.status(200).send(data);
+    return await createUserLang(res, data, userData, updated);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
+
+async function createUserLang(res, data, userData, updated) {
+  userData.updated = updated;
+  data = new UserDataLang(userData);
+  await data.save();
+  return res.status(200).send(data);
+}
+
+async function updateUserLang(res, data, userData, updated) {
+  data = await UserDataLang.findOneAndUpdate(
+    { uid: data.uid }, // find by uid
+    { $set: userData }, // update all userData
+    { new: true }
+  );
+  // if [updated] time is greater than [updated] time on database, update it
+  if (updated > data.updated) {
+    if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
+      data = await UserDataLang.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+    }
+  }
+  return res.status(200).json(data);
+}
 
 // @route   GET api/db/user/langdata/:user_id
 // @desc    Get user lang data by user id
@@ -252,6 +279,7 @@ router.get('/langdata/:user_id', auth.verifyJWTToken, async (req, res) => {
 router.post('/dailyexp', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  check('updated', 'Updated time is required').not().isEmpty(),
 ],
 async (req, res) => {
   const errors = validationResult(req);
@@ -266,6 +294,7 @@ async (req, res) => {
 
   const {
     list,
+    updated,
   } = req.body;
 
   const userData = {
@@ -279,24 +308,36 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      data = await DailyEXP.findOneAndUpdate(
-        { uid: data.uid }, // find by uid
-        { $set: userData }, // update all userData
-        { new: true }
-      );
-      return res.json(data);
+      return await updateDailyEXP(res, data, userData, updated);
     }
-    
-    // If data does not already exist, create
-    data = new DailyEXP(userData);
-    console.log(data);
-    await data.save(); // save data to database
-    res.status(200).send(data);
+    return await createDailyEXP(res, data, userData, updated);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
+
+async function createDailyEXP(res, data, userData, updated) {
+  userData.updated = updated; // add [updated] value to userData. This is because we NEED [updated] value when creating object
+  data = new DailyEXP(userData);
+  await data.save();
+  return res.status(200).send(data);
+}
+
+async function updateDailyEXP(res, data, userData, updated) {
+  data = await DailyEXP.findOneAndUpdate(
+    { uid: data.uid }, // find by uid
+    { $set: userData }, // update all userData
+    { new: true }
+  );
+  // if [updated] time is greater than [updated] time on database, update it
+  if (updated > data.updated) {
+    if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
+      data = await DailyEXP.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+    }
+  }
+  return res.status(200).json(data);
+}
 
 // @route   GET api/db/user/dailyexp/:user_id
 // @desc    Get user dailyexp data by user id
