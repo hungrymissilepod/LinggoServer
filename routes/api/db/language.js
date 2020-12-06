@@ -125,6 +125,34 @@ async (req, res) => {
   }
 });
 
+// @route   GET api/db/language/:user_id/updated
+// @desc    Get user language data updated time by user id
+// @access  Private
+router.get('/:user_id/updated', auth.verifyJWTToken,
+[
+  query('language', 'language param is required').not().isEmpty(),
+],
+async (req, res) => {
+  const uid = req.uid;
+  const user_id = req.params.user_id;
+  if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
+  
+  const language = req.query.language;
+  LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
+
+  try {
+    const data = await LanguageModel.findOne({uid: user_id});
+    if (!data) return res.status(400).json({ msg: 'User data not found' });
+    res.status(200).json(data.updated);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'User data not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
 /// ---------
 /// WORD
 /// ---------
