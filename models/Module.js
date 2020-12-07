@@ -6,6 +6,15 @@ const ModuleSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  version: {
+    type: String,
+  },
+  build: {
+    type: Number,
+  },
+  id: {
+    type: String,
+  },
   units: [{
     type: Object,
   }],

@@ -32,12 +32,18 @@ async (req, res) => {
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   const {
+    version,
+    build,
+    id,
     units,
     lessons,
   } = req.body;
 
   const userData = {
     uid,
+    version,
+    build,
+    id,
     units,
     lessons,
   }
