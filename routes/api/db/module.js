@@ -113,7 +113,7 @@ async (req, res) => {
   ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to module from params
 
   try {
-    const data = await ModuleModel.findOne({uid: uid});
+    const data = await ModuleModel.findOne({uid: user_id});
     if (!data) return res.status(400).json({ msg: 'User data not found' });
     res.json(data);
   } catch (err) {
