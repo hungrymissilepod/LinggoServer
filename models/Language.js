@@ -16,7 +16,12 @@ const LanguageSchema = new mongoose.Schema({
     type: String,
   },
   words: [{
-    type: Object,
+    id: Number,
+    isLocked: Boolean,
+    unlockTime: Number,
+    easiness: Number,
+    consecutiveCorrectAnswers: Number,
+    reviewTime: Number,
   }],
   questions: [{
     type: Object,
