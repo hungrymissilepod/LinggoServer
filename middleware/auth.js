@@ -22,6 +22,7 @@ function verifyJWTToken (req, res, next) {
 // Checks that this device is whitelisted
 function verifyWhiteListDevice (req, res, next) {
   const deviceId = req.header('deviceId');
+  console.log('user deviceId' + deviceId);
   var devices = process.env.WHITELIST_DEVICES.split(',');
   var foundDeviceIdMatch = false;
   
