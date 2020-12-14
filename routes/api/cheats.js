@@ -22,6 +22,9 @@ router.get('/verifyCheat', auth.verifyWhiteListDevice, (req, res) => {
     // Get cheat code on server
     var appData = cheatGenerator.getCheatCode();
     var cheatCode = JSON.parse(appData).appCode;
+
+    console.log('server cheat' + cheatCode);
+    console.log('user cheat' + code);
     
     // Check if codes match
     if (code == cheatCode) {
