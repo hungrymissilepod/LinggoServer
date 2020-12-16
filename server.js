@@ -21,6 +21,7 @@ app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/db/user', require('./routes/api/db/user'));
 app.use('/api/db/language', require('./routes/api/db/language'));
 app.use('/api/db/module', require('./routes/api/db/module'));
+app.use('/api/aws/polly', require('./routes/api/aws/polly'));
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
