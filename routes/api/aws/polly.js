@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { validationResult, query } = require('express-validator');
 const AWS = require('aws-sdk');
 const { Stream } = require('stream');
+const auth = require('../../../middleware/auth');
+const { validationResult, query } = require('express-validator');
 
 // Create Polly client
 const Polly = new AWS.Polly({
@@ -10,7 +11,7 @@ const Polly = new AWS.Polly({
   region: 'us-east-1',
 });
 
-router.get('/',
+router.get('/', auth.verifyJWTToken,
 [
   query('text', 'text is required').not().isEmpty(),
   query('textType', 'textType is required').not().isEmpty(),
