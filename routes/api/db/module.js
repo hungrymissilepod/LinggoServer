@@ -14,8 +14,8 @@ var ModuleModel = mongoose.model('moduleModel', ModuleSchema, 'EnglishToChineseM
 router.post('/', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
-  check('updated', 'Updated is required').not().isEmpty(),
+  header('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  header('updated', 'Updated is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -168,8 +168,8 @@ async (req, res) => {
 router.post('/unit/:unit_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
-  check('updated', 'Updated is required').not().isEmpty(),
+  header('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  header('updated', 'Updated is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -231,8 +231,8 @@ async (req, res) => {
 router.post('/lesson/:type/:lesson_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
-  check('updated', 'Updated is required').not().isEmpty(),
+  header('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  header('updated', 'Updated is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
