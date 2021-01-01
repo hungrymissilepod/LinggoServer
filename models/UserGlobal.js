@@ -161,6 +161,10 @@ const UserDataGlobalSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  build: {
+    type: Number,
+    required: true,
+  },
 });
 
 module.exports = UserDataGlobal = mongoose.model('userDataGlobal', UserDataGlobalSchema, 'UserDataGlobal');

@@ -24,6 +24,7 @@ router.post('/global', auth.verifyJWTToken,
   header('uid', 'uid is required').not().isEmpty(),
   check('username', 'Username is required').not().isEmpty(),
   check('updated', 'Updated time is required').not().isEmpty(),
+  check('build', 'Build is required').not().isEmpty(),
 ],
 async (req, res) => {
   const errors = validationResult(req);
@@ -73,6 +74,7 @@ async (req, res) => {
     inventory,
     achievements,
     updated,
+    build,
   } = req.body;
 
   const userData = {
@@ -120,23 +122,23 @@ async (req, res) => {
 
     // If user exists, update
     if (data) {
-      return await updateUserGlobal(res, data, userData, updated);
+      return await updateUserGlobal(res, data, userData, updated, build);
     } 
-    return await createUserGlobal(res, data, userData, updated);
+    return await createUserGlobal(res, data, userData, updated, build);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
 
-async function createUserGlobal(res, data, userData, updated) {
-  userData.updated = updated;
+async function createUserGlobal(res, data, userData, updated, build) {
+  userData.updated = updated; userData.build = build;
   data = new UserDataGlobal(userData);
   await data.save();
   return res.status(200).send(data);
 }
 
-async function updateUserGlobal(res, data, userData, updated) {
+async function updateUserGlobal(res, data, userData, updated, build) {
   data = await UserDataGlobal.findOneAndUpdate(
     { uid: data.uid }, // find by uid
     { $set: userData }, // update all userData
@@ -145,7 +147,9 @@ async function updateUserGlobal(res, data, userData, updated) {
   // if [updated] time is greater than [updated] time on database, update it
   if (updated > data.updated) {
     if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
-      data = await UserDataGlobal.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+      if (build > data.build) {
+        data = await UserDataGlobal.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated }, 'build': { $lt: build } }, { $set: { 'updated': updated }, $set: { 'build': build } }, { new: true } );
+      }
     }
   }
   return res.status(200).json(data);
