@@ -84,9 +84,10 @@ async function updateLanguageData(data, userData) {
 
 async function languageDataUpdateTime(res, data, timeStamp, updated) {
   if (timeStamp > data.timeStamp) {
-    if (timeStamp < new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
+    if (timeStamp <= new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
       if (updated > data.updated) {
-        data = await LanguageModel.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
+        data = await LanguageModel.findOneAndUpdate( { uid: data.uid }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
+        // data = await LanguageModel.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
       }
     }
   }
