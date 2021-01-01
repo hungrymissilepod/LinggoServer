@@ -14,7 +14,8 @@ var ModuleModel = mongoose.model('moduleModel', ModuleSchema, 'EnglishToChineseM
 router.post('/', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  header('updated', 'updated time is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -24,6 +25,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const timeStamp = req.header('timeStamp');
   const updated = req.header('updated');
   const module = req.query.module;
   ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to language from params
@@ -55,17 +57,17 @@ async (req, res) => {
     // If data exists, update
     if (data) {
       data = await updateModuleData(data, userData);
-      return moduleDataUpdateTime(res, data, updated);
+      return moduleDataUpdateTime(res, data, timeStamp, updated);
     }
-    return res.status(200).send(createModuleData(data, userData, updated));
+    return res.status(200).send(createModuleData(data, userData, timeStamp, updated));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
 
-async function createModuleData(data, userData, updated) {
-  userData.updated = updated;
+async function createModuleData(data, userData, timeStamp, updated) {
+  userData.timeStamp = timeStamp; userData.updated = updated;
   data = new ModuleModel(userData);
   await data.save();
   return data;
@@ -80,10 +82,12 @@ async function updateModuleData(data, userData) {
   return data;
 }
 
-async function moduleDataUpdateTime(res, data, updated) {
-  if (updated > data.updated) {
-    if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
-      data = await ModuleModel.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+async function moduleDataUpdateTime(res, data, timeStamp, updated) {
+  if (timeStamp > data.timeStamp) {
+    if (timeStamp < new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
+      if (updated > data.updated) {
+        data = await ModuleModel.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
+      }
     }
   }
   return res.json(data);
@@ -126,7 +130,7 @@ async (req, res) => {
 });
 
 // @route   GET api/db/module/:user_id/updated
-// @desc    Get user module data updated time by user id
+// @desc    Get user module data updated value by user id
 // @access  Private
 router.get('/:user_id/updated', auth.verifyJWTToken,
 [
@@ -164,7 +168,8 @@ async (req, res) => {
 router.post('/unit/:unit_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  header('updated', 'updated time is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -174,6 +179,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const timeStamp = req.header('timeStamp');
   const updated = req.header('updated');
   const module = req.query.module;
   ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to language from params
@@ -191,7 +197,7 @@ async (req, res) => {
 
     // If data does not exist
     if (!data) {
-      data = await createModuleData(data, { uid: uid }, updated);
+      data = await createModuleData(data, { uid: uid }, timeStamp, updated);
     }
     // Try to find Unit in array
     // Find document with matching user id and Unit with matching unit_id
@@ -206,7 +212,7 @@ async (req, res) => {
           if(err) { return res.status(500).send(err.message); }
         });
       } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
-      return await moduleDataUpdateTime(res, data, updated);
+      return await moduleDataUpdateTime(res, data, timeStamp, updated);
     });
   } catch (err) {
     console.error(err.message);
@@ -225,7 +231,8 @@ async (req, res) => {
 router.post('/lesson/:type/:lesson_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  header('updated', 'updated time is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
   query('module', 'module param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -235,6 +242,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const timeStamp = req.header('timeStamp');
   const updated = req.header('updated');
   const module = req.query.module;
   ModuleModel = mongoose.model('moduleModel', ModuleSchema, module); // set collection to language from params
@@ -253,7 +261,7 @@ async (req, res) => {
 
     // If data does not exist
     if (!data) {
-      data = await createModuleData(data, { uid: uid }, updated);
+      data = await createModuleData(data, { uid: uid }, timeStamp, updated);
     }
     switch (type) {
       case "Vocab":
@@ -263,7 +271,7 @@ async (req, res) => {
       case "Study":
         return await postStudyLessons(res, uid, lesson, lesson_id);
     }
-    return await moduleDataUpdateTime(res, data, updated);
+    return await moduleDataUpdateTime(res, data, timeStamp, updated);
   } catch (err) {
     console.error(err.message);
     return res.status(500).send('Server error');

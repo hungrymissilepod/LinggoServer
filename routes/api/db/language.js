@@ -14,7 +14,8 @@ var LanguageModel = mongoose.model('languageModel', LanguageSchema, 'Chinese');
 router.post('/', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  header('updated', 'updated time is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
   query('language', 'language param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -24,6 +25,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const timeStamp = req.header('timeStamp');
   const updated = req.header('updated');
   const language = req.query.language;
   LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
@@ -55,18 +57,17 @@ async (req, res) => {
     // If data exists, update
     if (data) {
       data = await updateLanguageData(data, userData);
-      return languageDataUpdateTime(res, data, updated);
+      return languageDataUpdateTime(res, data, timeStamp, updated);
     }
-    data = await createLanguageData(data, userData, updated);
-    res.status(200).json(data);
+    return res.status(200).send(createLanguageData(data, userData, timeStamp, updated));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
 
-async function createLanguageData(data, userData, updated) {
-  userData.updated = updated;
+async function createLanguageData(data, userData, timeStamp, updated) {
+  userData.timeStamp = timeStamp; userData.updated = updated;
   data = new LanguageModel(userData);
   await data.save();
   return data;
@@ -81,10 +82,12 @@ async function updateLanguageData(data, userData) {
   return data;
 }
 
-async function languageDataUpdateTime(res, data, updated) {
-  if (updated > data.updated) {
-    if (updated < new Date().getTime()) { // ensure that the [updated] time sent is not in the future (compare to server time)
-      data = await LanguageModel.findOneAndUpdate( { uid: data.uid, 'updated': { $lt: updated } }, { $set: { 'updated': updated } }, { new: true } );
+async function languageDataUpdateTime(res, data, timeStamp, updated) {
+  if (timeStamp > data.timeStamp) {
+    if (timeStamp < new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
+      if (updated > data.updated) {
+        data = await LanguageModel.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
+      }
     }
   }
   return res.json(data);
@@ -126,7 +129,7 @@ async (req, res) => {
 });
 
 // @route   GET api/db/language/:user_id/updated
-// @desc    Get user language data updated time by user id
+// @desc    Get user language data updated value by user id
 // @access  Private
 router.get('/:user_id/updated', auth.verifyJWTToken,
 [
@@ -164,7 +167,8 @@ async (req, res) => {
 router.post('/w/:word_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  header('updated', 'updated time is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
   query('language', 'language param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -174,6 +178,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const timeStamp = req.header('timeStamp');
   const updated = req.header('updated');
   const language = req.query.language;
   LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
@@ -191,7 +196,7 @@ async (req, res) => {
 
     // If document does not exist
     if (!data) {
-      data = await createLanguageData(data, { uid: uid }, updated);
+      data = await createLanguageData(data, { uid: uid }, timeStamp, updated);
     }
     // Try to find Word in array
     // Find document with mathing user id and word with matching word_id
@@ -206,7 +211,7 @@ async (req, res) => {
           if(err) { return res.status(500).send(err.message); }
         });
       } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
-      return languageDataUpdateTime(res, data, updated);
+      return languageDataUpdateTime(res, data, timeStamp, updated);
     });
   } catch (err) {
     console.error(err.message);
@@ -225,7 +230,8 @@ async (req, res) => {
 router.post('/q/:question_id', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
-  header('updated', 'updated time is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
   query('language', 'language param is required').not().isEmpty(),
 ],
 async (req, res) => {
@@ -235,6 +241,7 @@ async (req, res) => {
   }
 
   const uid = req.header('uid');
+  const timeStamp = req.header('timeStamp');
   const updated = req.header('updated');
   const language = req.query.language;
   LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
@@ -252,7 +259,7 @@ async (req, res) => {
 
     // If document does not exist
     if (!data) {
-      data = await createLanguageData(data, { uid: uid }, updated);
+      data = await createLanguageData(data, { uid: uid }, timeStamp, updated);
     }
 
     // Try to find Question in array
@@ -268,7 +275,7 @@ async (req, res) => {
           if(err) { return res.status(500).send(err.message); }
         });
       } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
-      return languageDataUpdateTime(res, data, updated);
+      return languageDataUpdateTime(res, data, timeStamp, updated);
     });
   } catch (err) {
     console.error(err.message);

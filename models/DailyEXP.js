@@ -9,6 +9,10 @@ const DailyEXPSchema = new mongoose.Schema({
   list: [{
     type: Object,
   }],
+  timeStamp: {
+    type: Number,
+    required: true,
+  },
   updated: {
     type: Number,
     required: true,

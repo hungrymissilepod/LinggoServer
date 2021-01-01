@@ -29,6 +29,10 @@ const ModuleSchema = new mongoose.Schema({
       type: Object,
     }],
   },
+  timeStamp: {
+    type: Number,
+    required: true,
+  },
   updated: {
     type: Number,
     required: true,

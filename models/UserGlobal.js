@@ -157,11 +157,11 @@ const UserDataGlobalSchema = new mongoose.Schema({
       completiongotCompletionRewardTimeTime : Number,
     }],
   }],
-  updated: {
+  timeStamp: {
     type: Number,
     required: true,
   },
-  build: {
+  updated: {
     type: Number,
     required: true,
   },

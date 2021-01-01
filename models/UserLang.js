@@ -9,6 +9,10 @@ const UserDataLangSchema = new mongoose.Schema({
   languages: [{
     type: Object,
   }],
+  timeStamp: {
+    type: Number,
+    required: true,
+  },
   updated: {
     type: Number,
     required: true,
