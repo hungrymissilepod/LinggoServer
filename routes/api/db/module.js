@@ -48,6 +48,8 @@ async (req, res) => {
     id,
     units,
     lessons,
+    timeStamp,
+    updated,
   }
 
   try {
@@ -56,18 +58,16 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      data = await updateModuleData(data, userData);
-      return moduleDataUpdateTime(res, data, timeStamp, updated);
+      return res.status(200).send(updateModuleData(data, userData));
     }
-    return res.status(200).send(createModuleData(data, userData, timeStamp, updated));
+    return res.status(200).send(createModuleData(data, userData));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
 
-async function createModuleData(data, userData, timeStamp, updated) {
-  userData.timeStamp = timeStamp; userData.updated = updated;
+async function createModuleData(data, userData) {
   data = new ModuleModel(userData);
   await data.save();
   return data;
@@ -82,14 +82,8 @@ async function updateModuleData(data, userData) {
   return data;
 }
 
-async function moduleDataUpdateTime(res, data, timeStamp, updated) {
-  if (timeStamp > data.timeStamp) {
-    if (timeStamp < new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
-      if (updated > data.updated) {
-        data = await ModuleModel.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
-      }
-    }
-  }
+async function updateTimeStampModuleData(res, data, timeStamp, updated) {
+  data = await ModuleModel.findOneAndUpdate( { uid: data.uid }, { $set: { 'timeStamp': timeStamp, 'updated': updated } }, { new: true } );
   return res.json(data);
 }
 
@@ -197,7 +191,8 @@ async (req, res) => {
 
     // If data does not exist
     if (!data) {
-      data = await createModuleData(data, { uid: uid }, timeStamp, updated);
+      const userData = { uid, timeStamp, updated };
+      data = await createModuleData(data, userData);
     }
     // Try to find Unit in array
     // Find document with matching user id and Unit with matching unit_id
@@ -212,7 +207,7 @@ async (req, res) => {
           if(err) { return res.status(500).send(err.message); }
         });
       } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
-      return await moduleDataUpdateTime(res, data, timeStamp, updated);
+      return await updateTimeStampModuleData(res, data, timeStamp, updated);
     });
   } catch (err) {
     console.error(err.message);
@@ -261,7 +256,8 @@ async (req, res) => {
 
     // If data does not exist
     if (!data) {
-      data = await createModuleData(data, { uid: uid }, timeStamp, updated);
+      const userData = { uid, timeStamp, updated };
+      data = await createModuleData(data, userData);
     }
     switch (type) {
       case "Vocab":
@@ -271,7 +267,7 @@ async (req, res) => {
       case "Study":
         return await postStudyLessons(res, uid, lesson, lesson_id);
     }
-    return await moduleDataUpdateTime(res, data, timeStamp, updated);
+    return await updateTimeStampModuleData(res, data, timeStamp, updated);
   } catch (err) {
     console.error(err.message);
     return res.status(500).send('Server error');

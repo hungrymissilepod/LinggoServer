@@ -114,6 +114,8 @@ async (req, res) => {
     langLevels,
     inventory,
     achievements,
+    timeStamp,
+    updated,
   }
 
   try {
@@ -122,37 +124,28 @@ async (req, res) => {
 
     // If user exists, update
     if (data) {
-      return await updateUserGlobal(res, data, userData, timeStamp, updated);
-    } 
-    return await createUserGlobal(res, data, userData, timeStamp, updated);
+      return res.status(200).send(updateUserGlobal(data, userData));
+    }
+    return res.status(200).send(createUserGlobal(data, userData));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
 
-async function createUserGlobal(res, data, userData, timeStamp, updated) {
-  userData.timeStamp = timeStamp; userData.updated = updated;
+async function createUserGlobal(data, userData) {
   data = new UserDataGlobal(userData);
   await data.save();
-  return res.status(200).send(data);
+  return data;
 }
 
-async function updateUserGlobal(res, data, userData, timeStamp, updated) {
+async function updateUserGlobal(data, userData) {
   data = await UserDataGlobal.findOneAndUpdate(
     { uid: data.uid }, // find by uid
     { $set: userData }, // update all userData
     { new: true }
   );
-  // if [timeStamp] time is greater than [timeStamp] time on database, update it
-  if (timeStamp > data.timeStamp) {
-    if (timeStamp < new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
-      if (updated > data.updated) {
-        data = await UserDataGlobal.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
-      }
-    }
-  }
-  return res.status(200).json(data);
+  return data;
 }
 
 // @route   GET api/db/user/global/:user_id
@@ -232,6 +225,8 @@ async (req, res) => {
   const userData = {
     uid,
     languages,
+    timeStamp,
+    updated,
   }
 
   try {
@@ -240,37 +235,28 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      return await updateUserLang(res, data, userData, timeStamp, updated);
+      return res.status(200).send(updateUserLang(data, userData));
     }
-    return await createUserLang(res, data, userData, timeStamp, updated);
+    return res.status(200).send(createUserLang(data, userData));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
 
-async function createUserLang(res, data, userData, timeStamp, updated) {
-  userData.timeStamp = timeStamp; userData.updated = updated;
+async function createUserLang(data, userData) {
   data = new UserDataLang(userData);
   await data.save();
-  return res.status(200).send(data);
+  return data;
 }
 
-async function updateUserLang(res, data, userData, timeStamp, updated) {
+async function updateUserLang(data, userData) {
   data = await UserDataLang.findOneAndUpdate(
     { uid: data.uid }, // find by uid
     { $set: userData }, // update all userData
     { new: true }
   );
-  // if [timeStamp] time is greater than [timeStamp] time on database, update it
-  if (timeStamp > data.timeStamp) {
-    if (timeStamp < new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
-      if (updated > data.updated) {
-        data = await UserDataLang.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
-      }
-    }
-  }
-  return res.status(200).json(data);
+  return data;
 }
 
 // @route   GET api/db/user/langdata/:user_id
@@ -350,6 +336,8 @@ async (req, res) => {
   const userData = {
     uid,
     list,
+    timeStamp,
+    updated,
   }
 
   try {
@@ -358,37 +346,28 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      return await updateDailyEXP(res, data, userData, timeStamp, updated);
+      return res.status(200).send(updateDailyEXP(data, userData));
     }
-    return await createDailyEXP(res, data, userData, timeStamp, updated);
+    return res.status(200).send(createDailyEXP(data, userData));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 });
 
-async function createDailyEXP(res, data, userData, timeStamp, updated) {
-  userData.timeStamp = timeStamp; userData.updated = updated; // add [timeStamp] value to userData. This is because we NEED [timeStamp] value when creating object
+async function createDailyEXP(data, userData) {
   data = new DailyEXP(userData);
   await data.save();
-  return res.status(200).send(data);
+  return data;
 }
 
-async function updateDailyEXP(res, data, userData, timeStamp, updated) {
+async function updateDailyEXP(data, userData) {
   data = await DailyEXP.findOneAndUpdate(
     { uid: data.uid }, // find by uid
     { $set: userData }, // update all userData
     { new: true }
   );
-  // if [timeStamp] time is greater than [timeStamp] time on database, update it
-  if (timeStamp > data.timeStamp) {
-    if (timeStamp < new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
-      if (updated > data.updated) {
-        data = await DailyEXP.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
-      }
-    }
-  }
-  return res.status(200).json(data);
+  return data;
 }
 
 // @route   GET api/db/user/dailyexp/:user_id

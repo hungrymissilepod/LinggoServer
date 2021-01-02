@@ -58,8 +58,7 @@ async (req, res) => {
 
     // If data exists, update
     if (data) {
-      data = await updateLanguageData(data, userData);
-      return languageDataUpdateTime(res, data, timeStamp, updated);
+      return res.status(200).send(updateLanguageData(data, userData));
     }
     return res.status(200).send(createLanguageData(data, userData));
   } catch (err) {
@@ -69,7 +68,6 @@ async (req, res) => {
 });
 
 async function createLanguageData(data, userData) {
-  // userData.timeStamp = timeStamp; userData.updated = updated;
   data = new LanguageModel(userData);
   await data.save();
   return data;
@@ -84,17 +82,8 @@ async function updateLanguageData(data, userData) {
   return data;
 }
 
-// ! testing out new method of simply updating timeStamp and updated to whatever we get sent. Don't think there is need to check this
-async function languageDataUpdateTime(res, data, timeStamp, updated) {
+async function updateTimeStampLanguageData(res, data, timeStamp, updated) {
   data = await LanguageModel.findOneAndUpdate( { uid: data.uid }, { $set: { 'timeStamp': timeStamp, 'updated': updated } }, { new: true } );
-  // if (timeStamp > data.timeStamp) {
-  //   if (timeStamp <= new Date().getTime()) { // ensure that the [timeStamp] time sent is not in the future (compare to server time)
-  //     if (updated > data.updated) {
-  //       data = await LanguageModel.findOneAndUpdate( { uid: data.uid }, { $set: { 'timeStamp': timeStamp, 'updated': updated } }, { new: true } );
-  //       // data = await LanguageModel.findOneAndUpdate( { uid: data.uid, 'timeStamp': { $lt: timeStamp }, 'updated': { $lt: updated } }, { $set: { 'timeStamp': timeStamp }, $set: { 'updated': updated } }, { new: true } );
-  //     }
-  //   }
-  // }
   return res.json(data);
 }
 
@@ -203,7 +192,6 @@ async (req, res) => {
     if (!data) {
       const userData = { uid, timeStamp, updated };
       data = await createLanguageData(data, userData);
-      // data = await createLanguageData(data, { uid: uid }, timeStamp, updated);
     }
     // Try to find Word in array
     // Find document with mathing user id and word with matching word_id
@@ -218,7 +206,7 @@ async (req, res) => {
           if(err) { return res.status(500).send(err.message); }
         });
       } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
-      return languageDataUpdateTime(res, data, timeStamp, updated);
+      return updateTimeStampLanguageData(res, data, timeStamp, updated);
     });
   } catch (err) {
     console.error(err.message);
@@ -268,7 +256,6 @@ async (req, res) => {
     if (!data) {
       const userData = { uid, timeStamp, updated };
       data = await createLanguageData(data, userData);
-      // data = await createLanguageData(data, { uid: uid }, timeStamp, updated);
     }
 
     // Try to find Question in array
@@ -284,7 +271,7 @@ async (req, res) => {
           if(err) { return res.status(500).send(err.message); }
         });
       } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
-      return languageDataUpdateTime(res, data, timeStamp, updated);
+      return updateTimeStampLanguageData(res, data, timeStamp, updated);
     });
   } catch (err) {
     console.error(err.message);
