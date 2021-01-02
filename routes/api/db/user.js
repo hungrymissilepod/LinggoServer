@@ -140,11 +140,14 @@ async function createUserGlobal(data, userData) {
 }
 
 async function updateUserGlobal(data, userData) {
-  data = await UserDataGlobal.findOneAndUpdate(
-    { uid: data.uid }, // find by uid
-    { $set: userData }, // update all userData
-    { new: true }
-  );
+  // Make sure that the [timeStamp] and [updated] values being sent are higher than the values currently in cloud. This ensures that the data is not regressing
+  if (userData.timeStamp > data.timeStamp && userData.updated > data.updated) {
+    data = await UserDataGlobal.findOneAndUpdate(
+      { uid: data.uid }, // find by uid
+      { $set: userData }, // update all userData
+      { new: true }
+    );
+  }
   return data;
 }
 
@@ -251,11 +254,13 @@ async function createUserLang(data, userData) {
 }
 
 async function updateUserLang(data, userData) {
-  data = await UserDataLang.findOneAndUpdate(
-    { uid: data.uid }, // find by uid
-    { $set: userData }, // update all userData
-    { new: true }
-  );
+  if (userData.timeStamp > data.timeStamp && userData.updated > data.updated) {
+    data = await UserDataLang.findOneAndUpdate(
+      { uid: data.uid }, // find by uid
+      { $set: userData }, // update all userData
+      { new: true }
+    );
+  }
   return data;
 }
 
@@ -362,11 +367,13 @@ async function createDailyEXP(data, userData) {
 }
 
 async function updateDailyEXP(data, userData) {
-  data = await DailyEXP.findOneAndUpdate(
-    { uid: data.uid }, // find by uid
-    { $set: userData }, // update all userData
-    { new: true }
-  );
+  if (userData.timeStamp > data.timeStamp && userData.updated > data.updated) {
+    data = await DailyEXP.findOneAndUpdate(
+      { uid: data.uid }, // find by uid
+      { $set: userData }, // update all userData
+      { new: true }
+    );
+  }
   return data;
 }
 

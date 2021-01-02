@@ -74,16 +74,20 @@ async function createModuleData(data, userData) {
 }
 
 async function updateModuleData(data, userData) {
-  data = await ModuleModel.findOneAndUpdate(
-    { uid: data.uid }, // find by uid
-    { $set: userData }, // update all userData
-    { new: true }
-  );
+  if (userData.timeStamp > data.timeStamp && userData.updated > data.updated) {
+    data = await ModuleModel.findOneAndUpdate(
+      { uid: data.uid }, // find by uid
+      { $set: userData }, // update all userData
+      { new: true }
+    );
+  }
   return data;
 }
 
 async function updateTimeStampModuleData(res, data, timeStamp, updated) {
-  data = await ModuleModel.findOneAndUpdate( { uid: data.uid }, { $set: { 'timeStamp': timeStamp, 'updated': updated } }, { new: true } );
+  if (timeStamp > data.timeStamp && updated > data.updated) {
+    data = await ModuleModel.findOneAndUpdate( { uid: data.uid }, { $set: { 'timeStamp': timeStamp, 'updated': updated } }, { new: true } );
+  }
   return res.json(data);
 }
 
