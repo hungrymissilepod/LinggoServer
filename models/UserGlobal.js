@@ -6,6 +6,11 @@ const UserDataGlobalSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  linggoID: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   username: {
     type: String,
     required: true,

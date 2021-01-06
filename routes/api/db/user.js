@@ -22,6 +22,7 @@ var langModel = mongoose.model('chineseLanguage', LanguageSchema);
 router.post('/global', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
+  check('linggoID', 'LinggoID is required').not().isEmpty(),
   check('username', 'Username is required').not().isEmpty(),
   check('timeStamp', 'TimeStamp is required').not().isEmpty(),
   check('updated', 'Updated is required').not().isEmpty(),
@@ -79,6 +80,7 @@ async (req, res) => {
 
   const userData = {
     uid,
+    linggoID,
     username,
     profilePicture,
     playtimeLifetime,
@@ -166,6 +168,33 @@ router.get('/global/:user_id', auth.verifyJWTToken, async (req, res) => {
     const data = await UserDataGlobal.findOne({uid: user_id});
     if (!data) return res.status(400).json({ msg: 'User data not found' });
     res.json(data);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'User data not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/db/user/global/:user_id
+// @desc    Get user's linggoID
+// @access  Private
+router.get('/global/:user_id/linggoID', auth.verifyJWTToken, async (req, res) => {
+  // Get uid from JWTToken. We need to make sure users can only get their OWN data
+  const uid = req.uid;
+  // Get the user_id param from request
+  const user_id = req.params.user_id;
+
+  if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
+  try {
+    const data = await UserDataGlobal.findOne({uid: user_id});
+    if (!data) return res.status(400).json({ msg: 'User data not found' });
+    if (data.linggoID != null) {
+      return res.send(data.linggoID);
+    }
+    return res.status(400).json({ msg: 'Linggo ID is null' });
   } catch (err) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {
