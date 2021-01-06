@@ -39,6 +39,7 @@ async (req, res) => {
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   const {
+    linggoID,
     username,
     profilePicture,
     playtimeLifetime,
