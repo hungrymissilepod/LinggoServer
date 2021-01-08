@@ -31,11 +31,18 @@ router.get('/token', (req, res) => {
   });
 });
 
-// @route   GET api/auth/secretRoute
+// @route   POST api/auth/verify
 // @desc    A protected route using auth middleware to ensure user has JWTToken. Used for testing.
 // @access  Private
-router.get('/secretRoute', auth.verifyJWTToken, (req, res) => {
-  res.send('hello this is secret route');
+router.post('/verify', auth.verifyJWTToken, (req, res) => {
+  res.status(200).send(req.uid);
+});
+
+// @route   GET api/auth/ping
+// @desc    A simple route used to ping the server to see if it is down or asleep
+// @access  Public
+router.get('/ping', (req, res) => {
+  res.sendStatus(200);
 });
 
 module.exports = router;
