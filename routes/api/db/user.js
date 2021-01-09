@@ -41,6 +41,8 @@ async (req, res) => {
   const {
     linggoID,
     username,
+    currentLanguage,
+    currentModule,
     profilePicture,
     playtimeLifetime,
     learnTimeLifetime,
@@ -83,6 +85,8 @@ async (req, res) => {
     uid,
     linggoID,
     username,
+    currentLanguage,
+    currentModule,
     profilePicture,
     playtimeLifetime,
     learnTimeLifetime,

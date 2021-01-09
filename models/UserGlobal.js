@@ -16,6 +16,14 @@ const UserDataGlobalSchema = new mongoose.Schema({
     required: true,
     default: 'Anonymous',
   },
+  currentLanguage: {
+    type: String,
+    default: '',
+  },
+  currentModule: {
+    type: String,
+    default: '',
+  },
   profilePicture: {
     type: String,
     default: '',
