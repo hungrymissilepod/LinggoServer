@@ -39,6 +39,7 @@ async (req, res) => {
     id,
     words,
     questions,
+    sentences,
   } = req.body;
 
   const userData = {
@@ -48,6 +49,7 @@ async (req, res) => {
     id,
     words,
     questions,
+    sentences,
     timeStamp,
     updated,
   }
@@ -272,6 +274,71 @@ async (req, res) => {
         });
       } else { // if this Question already exists in document, update this Question values
         await LanguageModel.updateOne({ uid: uid, questions: { $elemMatch: { "id": question_id } } }, { $set: { 'questions.$': question } }, function(err, d2) {
+          if(err) { return res.status(500).send(err.message); }
+        });
+      } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.
+      return updateTimeStampLanguageData(res, data, timeStamp, updated);
+    });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send('Server error');
+  }
+});
+
+/// ---------
+/// SENTENCE
+/// ---------
+
+// @route   POST api/db/language/q
+// @params  language (which language data we are posting)
+// @desc    Post sentence to language collection
+// @access  Private
+router.post('/s/:sentence_id', auth.verifyJWTToken,
+[
+  header('uid', 'uid is required').not().isEmpty(),
+  header('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  header('updated', 'Updated is required').not().isEmpty(),
+  query('language', 'language param is required').not().isEmpty(),
+],
+async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const uid = req.header('uid');
+  const timeStamp = req.header('timeStamp');
+  const updated = req.header('updated');
+  const language = req.query.language;
+  LanguageModel = mongoose.model('languageModel', LanguageSchema, language); // set collection to language from params
+
+  // Get Sentence data from body and params
+  const sentence = req.body;
+  const sentence_id = parseInt(req.params.sentence_id);
+
+  // Make sure uid from header matches uid from token. So user can only access their own data
+  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
+  try {
+    // Check is user language document exists
+    let data = await LanguageModel.findOne({ uid: uid });
+
+    // If document does not exist
+    if (!data) {
+      const userData = { uid, timeStamp, updated };
+      data = await createLanguageData(data, userData);
+    }
+
+    // Try to find Sentence in array
+    // Find document with mathing user id and sentence with mathing sentence_id
+    await LanguageModel.findOne({ uid: uid, "sentences.id": sentence_id }, async function(err, result) {
+      if(err) { return res.status(500).send(err.message); }
+      if (result == null) { // if this sentence does not exist in document (not in array), add this Sentence to array
+        await LanguageModel.updateOne({ uid: uid }, { "$addToSet": { "sentences": sentence } }, function(err, d1) {
+          if(err) { return res.status(500).send(err.message); }
+        });
+      } else { // if this Sentence already exists in document, update this Sentence values
+        await LanguageModel.updateOne({ uid: uid, sentences: { $elemMatch: { "id": sentence_id } } }, { $set: { 'sentences.$': sentence } }, function(err, d2) {
           if(err) { return res.status(500).send(err.message); }
         });
       } // * using updateOne method DOES NOT return new version of document. Please note we are returning the OLD version of the document.

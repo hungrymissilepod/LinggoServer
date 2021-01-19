@@ -21,6 +21,9 @@ const LanguageSchema = new mongoose.Schema({
   questions: [{
     type: Object,
   }],
+  sentences: [{
+    type: Object,
+  }],
   timeStamp: {
     type: Number,
     required: true,

@@ -28,6 +28,9 @@ const ModuleSchema = new mongoose.Schema({
     studyLessons: [{
       type: Object,
     }],
+    vgLessons: [{
+      type: Object,
+    }],
   },
   timeStamp: {
     type: Number,

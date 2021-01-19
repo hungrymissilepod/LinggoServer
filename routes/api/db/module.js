@@ -270,6 +270,8 @@ async (req, res) => {
         return await postGrammarLesson(res, uid, lesson, lesson_id);
       case "Study":
         return await postStudyLessons(res, uid, lesson, lesson_id);
+      case "VG":
+        return await postVGLessons(res, uid, lesson, lesson_id);
     }
     return await updateTimeStampModuleData(res, data, timeStamp, updated);
   } catch (err) {
@@ -321,6 +323,22 @@ async function postStudyLessons(res, uid, lesson, lesson_id) {
       });
     } else {
       await ModuleModel.updateOne({ uid: uid, "lessons.studyLessons": { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.studyLessons.$": lesson } }, function(err, data) {
+        if(err) { return res.status(500).send(err.message); }
+      });
+    }
+  });
+  return res.sendStatus(200);
+}
+
+async function postVGLessons(res, uid, lesson, lesson_id) {
+  await ModuleModel.findOne({ uid: uid, "lessons.vgLessons.id": lesson_id }, async function(err, data) {
+    if(err) { return res.status(500).send(err.message); }
+    if (data == null) {
+      await ModuleModel.updateOne({ uid: uid }, { "$addToSet": { "lessons.vgLessons": lesson } }, function(err, data) {
+        if(err) { return res.status(500).send(err.message); }
+      });
+    } else {
+      await ModuleModel.updateOne({ uid: uid, "lessons.vgLessons": { $elemMatch: { "id": lesson_id } } }, { $set: { "lessons.vgLessons.$": lesson } }, function(err, data) {
         if(err) { return res.status(500).send(err.message); }
       });
     }
