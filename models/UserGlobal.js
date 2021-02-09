@@ -148,9 +148,26 @@ const UserDataGlobalSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  langLevels: [{
-    language : String,
-    level : Number,
+  languages: [{
+    language: String,
+    exp: Number,
+    level: Number,
+    wordsUnlocked: Number,
+    playtime: Number,
+    levels: [{
+      exp: Number,
+      level: Number,
+      levelUpTime: Number,
+      gotLevelUpReward: Boolean,
+      gotLevelUpRewardTime: Number,
+    }],
+    modules: [{
+      moduleID: String,
+      complete: Boolean,
+      completionTime: Number,
+      gotCompletionReward: Boolean,
+      gotCompletionRewardTime: Number,
+    }],
   }],
   inventory: {
     type: Object,
