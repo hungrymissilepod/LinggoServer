@@ -63,6 +63,14 @@ exports.testWelcomeEmail = functions.https.onRequest(async (req, res) => {
       Sender_Address: 'London',
       Sender_City: 'UK',
     },
+    asm: {
+      group_id: 15276,
+    },
+    mailSettings: {
+      bypass_list_management: {
+        enable: true,
+      },
+    }
   };
   
   sgMail
@@ -79,8 +87,6 @@ exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
   // Here we are getting user data from auth again so that it has the updated displayName so we can use it in email
   let userData = await admin.auth().getUser(user.uid);
 
-  admin.auth().gen
-
   const msg = {
     to: userData.email,
     from: 'hello@linggo.io',
@@ -94,6 +100,14 @@ exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
       Sender_Address: 'London',
       Sender_City: 'UK',
     },
+    asm: {
+      group_id: 15276, // When clicking 'Unsubscribe' this is the group the user will be unsubscribing from
+    },
+    mailSettings: {
+      bypass_list_management: { // this setting ensures that we still send this email to users who have unsubscribed from emails
+        enable: true,
+      },
+    }
   };
 
   sgMail.send(msg);
@@ -113,3 +127,31 @@ exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
 
 // Set up custom email action handler (my own site)
 // https://firebase.google.com/docs/auth/custom-email-handler
+
+
+/*
+
+mailSettings: {
+  bypass_list_management: {
+    enable: true,
+  },
+}
+
+These arguments ensure that users that have opted out (unsubscribed) from our emails still receive.
+We should be sure to do this only when needed to as to not annoy users who have said they do not want them.
+The only times we should use them are when user has requested an email or it is necessary.
+For example: welcome email, verifcation emails, password reset emails, etc.
+
+
+asm: {
+  group_id: 15276,
+  groups_to_display: [
+    15276
+  ],
+},
+
+ASM (Advanced Suppression Management) is used for Subscription Tracking. Used for targeting who to send this email too (in which groups).
+group_id is the the group id you want to send the email to. For example the Newsletter group is 15277
+groups_to_display are the list of groups you want to display when the user clicks the Unsubscribe Preferences button in the email. We can leave this blank because all our groups are displayed by default.
+
+*/
