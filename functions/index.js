@@ -87,6 +87,9 @@ exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
   // Here we are getting user data from auth again so that it has the updated displayName so we can use it in email
   let userData = await admin.auth().getUser(user.uid);
 
+  // Anonymous users do not have emails so we cannot send emails to them
+  if (userData.email == undefined) { return; }
+
   const msg = {
     to: userData.email,
     from: 'hello@linggo.io',
