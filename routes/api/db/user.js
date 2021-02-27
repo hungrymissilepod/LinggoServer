@@ -455,6 +455,50 @@ router.get('/dailyexp/:user_id/updated', auth.verifyJWTToken, async (req, res) =
   }
 });
 
+/// USERNAME - START
+
+router.post('/:user_id/username', auth.verifyJWTToken,
+[
+  header('uid', 'uid is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
+],
+async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const uid = req.header('uid')
+
+  // Make sure uid from header matches uid from token. So user can only access their own data
+  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
+  const {
+    username,
+    timeStamp,
+    updated
+  } = req.body;
+
+  try {
+    /// Check if user data already exists
+    let data = await UserDataGlobal.findOne({ uid: uid });
+
+    if (!data) {
+      return res.status(400).send('User data does not exist');
+    }
+    /// Update [gdprConsent] value
+    await UserDataGlobal.updateOne({ uid: uid }, { 'username': username }, function(err, result) {
+      if (err) { return res.status(500).send(err.message); }
+    });
+    return updateTimeStamp(res, data, timeStamp, updated);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send('Server error');
+  }
+});
+
+/// USERNAME - END
 
 /// GDPR Consent - START
 
@@ -511,7 +555,6 @@ async (req, res) => {
     /// Update [gdprConsent] value
     await UserDataGlobal.updateOne({ uid: uid }, { 'gdprConfirmed': gdprConsent }, function(err, result) {
       if (err) { return res.status(500).send(err.message); }
-      else { console.log('updated'); }
     });
     return updateTimeStamp(res, data, timeStamp, updated);
   } catch (err) {
