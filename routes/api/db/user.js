@@ -455,4 +455,78 @@ router.get('/dailyexp/:user_id/updated', auth.verifyJWTToken, async (req, res) =
   }
 });
 
+
+/// GDPR Consent - START
+
+// @route   GET api/db/user/:user_id/gdprConsent
+// @desc    Get user global data updated value by user id
+// @access  Private
+router.get('/:user_id/gdprConsent', auth.verifyJWTToken, async (req, res) => {
+  const uid = req.uid;
+  const user_id = req.params.user_id;
+  if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
+  try {
+    const data = await UserDataGlobal.findOne({uid: user_id});
+    if (!data) return res.status(400).json({ msg: 'User data not found' });
+    res.status(200).json(data.gdprConfirmed);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'User data not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+router.post('/:user_id/gdprConsent', auth.verifyJWTToken,
+[
+  header('uid', 'uid is required').not().isEmpty(),
+  check('timeStamp', 'TimeStamp is required').not().isEmpty(),
+  check('updated', 'Updated is required').not().isEmpty(),
+],
+async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const uid = req.header('uid')
+
+  // Make sure uid from header matches uid from token. So user can only access their own data
+  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
+  const {
+    gdprConsent,
+    timeStamp,
+    updated
+  } = req.body;
+
+  try {
+    /// Check if user data already exists
+    let data = await UserDataGlobal.findOne({ uid: uid });
+
+    if (!data) {
+      return res.status(400).send('User data does not exist');
+    }
+    /// Update [gdprConsent] value
+    await UserDataGlobal.updateOne({ uid: uid }, { 'gdprConfirmed': gdprConsent }, function(err, result) {
+      if (err) { return res.status(500).send(err.message); }
+      else { console.log('updated'); }
+    });
+    return updateTimeStamp(res, data, timeStamp, updated);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send('Server error');
+  }
+});
+
+async function updateTimeStamp(res, data, timeStamp, updated) {
+  if (timeStamp > data.timeStamp && updated > data.updated) {
+    data = await UserDataGlobal.findOneAndUpdate( { uid: data.uid }, { $set: { 'timeStamp': timeStamp, 'updated': updated } }, { new: true } );
+  }
+  return res.json(data);
+}
+
+/// GDPR Consent - END
+
 module.exports = router;
