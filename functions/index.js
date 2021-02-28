@@ -7,6 +7,7 @@ const sgMail = require('@sendgrid/mail');
 
 const API_KEY = functions.config().sendgrid.key;
 const WELCOME_EMAIL_TEMPLATE_ID = functions.config().sendgrid.welcomeemailtemplate;
+const CHANGE_PASSWORD_EMAIL_TEMPLATE_ID = functions.config().sendgrid.changepasswordtemplate;
 sgMail.setApiKey(API_KEY);
 
 // Cloud Functions Config - How it works
@@ -75,10 +76,52 @@ exports.testWelcomeEmail = functions.https.onRequest(async (req, res) => {
   
   sgMail
     .send(msg)
-    .then(() => { console.log('Email sent'); return res.status(200); })
-    .catch((error) => { console.error(error); console.log(error.response.body); return res.status(400).json(error); });
+    .then(() => { console.log('Email sent'); })
+    .catch((error) => { console.error(error); console.log(error.response.body); return res.status(400).json(error).end(); });
   res.status(200).send().end();
 });
+
+// // TODO: now we can call this route whenever user changes their password.
+// // TODO: in linggo-website app, call this whenever user changes password. Send uid in query headers.
+// // TODO: in this method run the auth().getUser(uid) to get user data. Then we can use it for sending email
+// // TODO: change this email template and test it out.
+
+// // TODO: work on the email when user changes their email. Can we override the one that Firebase sends? Or can we somehow link it to SendGrid so that we can choose which email to send?
+// exports.changePassword = functions.https.onRequest(async (req, res) => {
+
+//   /// Username and userEmail from request params
+//   const username = req.query.username;
+//   const email = req.query.email;
+
+//   const msg = {
+//     to: email,
+//     from: 'hello@linggo.io',
+//     template_id: CHANGE_PASSWORD_EMAIL_TEMPLATE_ID,
+//     dynamic_template_data: {
+//       subject: 'Welcome to Linggo!',
+//       name: username,
+//       user_email: email,
+//       user_name: username,
+//       Sender_Name: 'Linggo',
+//       Sender_Address: 'London',
+//       Sender_City: 'UK',
+//     },
+//     asm: {
+//       group_id: 15276,
+//     },
+//     mailSettings: {
+//       bypass_list_management: {
+//         enable: true,
+//       },
+//     }
+//   };
+  
+//   sgMail
+//     .send(msg)
+//     .then(() => { console.log('Email sent'); })
+//     .catch((error) => { console.error(error); console.log(error.response.body); });
+//   res.status(200).send().end();
+// });
 
 // Send email to user after signup
 exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
