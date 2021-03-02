@@ -1,4 +1,5 @@
 const express = require('express');
+var cors = require('cors')
 const path = require('path');
 const connectDB = require('./db');
 
@@ -13,6 +14,7 @@ const app = express();
 connectDB();
 
 // Init Middleware
+app.use(cors())
 app.use(express.json({ extended: false, limit: '50mb' }));
 
 // Define routes
