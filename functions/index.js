@@ -28,11 +28,14 @@ sgMail.setApiKey(API_KEY);
 // Create and Deploy Your First Cloud Functions
 // https://firebase.google.com/docs/functions/write-firebase-functions
 
+
+///! TEST
 exports.helloWorld = functions.https.onRequest((request, response) => {
   functions.logger.info("Hello logs!", {structuredData: true});
   response.send("Hello from Firebase!");
 });
 
+///! TEST
 // Take the text parameter passed to this HTTP endpoint and insert it into 
 // Firestore under the path /messages/:documentId/original
 exports.addMessage = functions.https.onRequest(async (req, res) => {
@@ -44,7 +47,7 @@ exports.addMessage = functions.https.onRequest(async (req, res) => {
   res.json({result: `Message with ID: ${writeResult.id} added.`});
 });
 
-/// Test email sent when we hit the http end point
+///* Test email sent when we hit the http end point
 exports.testWelcomeEmail = functions.https.onRequest(async (req, res) => {
 
   /// Username and userEmail from request params
@@ -53,7 +56,7 @@ exports.testWelcomeEmail = functions.https.onRequest(async (req, res) => {
 
   const msg = {
     to: email,
-    from: 'hello@linggo.io',
+    from: { name: 'Linggo', email: 'hello@linggo.io' },
     template_id: WELCOME_EMAIL_TEMPLATE_ID,
     dynamic_template_data: {
       subject: 'Welcome to Linggo!',
@@ -81,48 +84,6 @@ exports.testWelcomeEmail = functions.https.onRequest(async (req, res) => {
   res.status(200).send().end();
 });
 
-// // TODO: now we can call this route whenever user changes their password.
-// // TODO: in linggo-website app, call this whenever user changes password. Send uid in query headers.
-// // TODO: in this method run the auth().getUser(uid) to get user data. Then we can use it for sending email
-// // TODO: change this email template and test it out.
-
-// // TODO: work on the email when user changes their email. Can we override the one that Firebase sends? Or can we somehow link it to SendGrid so that we can choose which email to send?
-// exports.changePassword = functions.https.onRequest(async (req, res) => {
-
-//   /// Username and userEmail from request params
-//   const username = req.query.username;
-//   const email = req.query.email;
-
-//   const msg = {
-//     to: email,
-//     from: 'hello@linggo.io',
-//     template_id: CHANGE_PASSWORD_EMAIL_TEMPLATE_ID,
-//     dynamic_template_data: {
-//       subject: 'Welcome to Linggo!',
-//       name: username,
-//       user_email: email,
-//       user_name: username,
-//       Sender_Name: 'Linggo',
-//       Sender_Address: 'London',
-//       Sender_City: 'UK',
-//     },
-//     asm: {
-//       group_id: 15276,
-//     },
-//     mailSettings: {
-//       bypass_list_management: {
-//         enable: true,
-//       },
-//     }
-//   };
-  
-//   sgMail
-//     .send(msg)
-//     .then(() => { console.log('Email sent'); })
-//     .catch((error) => { console.error(error); console.log(error.response.body); });
-//   res.status(200).send().end();
-// });
-
 // Send email to user after signup
 exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
 
@@ -135,7 +96,7 @@ exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
 
   const msg = {
     to: userData.email,
-    from: 'hello@linggo.io',
+    from: { name: 'Linggo', email: 'hello@linggo.io' },
     templateId: WELCOME_EMAIL_TEMPLATE_ID,
     dynamic_template_data: {
       subject: 'Welcome to Linggo!',
@@ -157,6 +118,53 @@ exports.welcomeEmail = functions.auth.user().onCreate(async (user) => {
   };
 
   sgMail.send(msg);
+});
+
+/// Send an email when user sucessfully changes their password (either through settings page or via resetting their password)
+exports.changePasswordSuccess = functions.https.onRequest(async (req, res) => {
+
+  /// Get uid and email from query params. Then load userData from Firebase with this uid
+  /// When user is logged in and change their password we have access to their uid. When they are not logged in and reset their password we only have access to their email.
+  const uid = req.query.uid;
+  const email = req.query.email;
+  
+  var userData;
+  
+  if (uid) { userData = await admin.auth().getUser(uid); }
+  else if (email) { userData = await admin.auth().getUserByEmail(email); }
+  else { console.log('uid and email not supplied. Cannot send email.'); return; }
+
+  // Anonymous users do not have emails so we cannot send emails to them (this should not happen for this email but have this check just in case)
+  if (userData.email == undefined) { return; }
+
+  const msg = {
+    to: userData.email,
+    from: { name: 'Linggo', email: 'hello@linggo.io' },
+    template_id: CHANGE_PASSWORD_EMAIL_TEMPLATE_ID,
+    dynamic_template_data: {
+      subject: 'Password Changed',
+      name: userData.displayName,
+      user_email: userData.email,
+      user_name: userData.displayName,
+      Sender_Name: 'Linggo',
+      Sender_Address: 'London',
+      Sender_City: 'UK',
+    },
+    asm: {
+      group_id: 15276,
+    },
+    mailSettings: {
+      bypass_list_management: {
+        enable: true,
+      },
+    }
+  };
+  
+  sgMail
+    .send(msg)
+    .then(() => { console.log('Email sent'); })
+    .catch((error) => { console.error(error); console.log(error.response.body); });
+  res.status(200).send().end();
 });
 
 // How to send verification email and password reset emails:
