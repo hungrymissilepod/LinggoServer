@@ -60,7 +60,11 @@ const UserDataGlobalSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  gdprConfirmed: {
+  gdprPopupShown: {
+    type: Boolean,
+    default: false,
+  },
+  nonPersonalisedAds: {
     type: Boolean,
     default: false,
   },

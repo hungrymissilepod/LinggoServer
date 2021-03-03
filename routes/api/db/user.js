@@ -52,7 +52,8 @@ async (req, res) => {
     installTime,
     onBoardingCompleteTime,
     reviewButtonUnlocked,
-    gdprConfirmed,
+    gdprPopupShown,
+    nonPersonalisedAds,
     globalRank,
     lifetimeEXP,
     coins,
@@ -96,7 +97,8 @@ async (req, res) => {
     installTime,
     onBoardingCompleteTime,
     reviewButtonUnlocked,
-    gdprConfirmed,
+    gdprPopupShown,
+    nonPersonalisedAds,
     globalRank,
     lifetimeEXP,
     coins,
@@ -487,7 +489,7 @@ async (req, res) => {
     if (!data) {
       return res.status(400).send('User data does not exist');
     }
-    /// Update [gdprConsent] value
+    /// Update [username] value
     await UserDataGlobal.updateOne({ uid: uid }, { 'username': username }, function(err, result) {
       if (err) { return res.status(500).send(err.message); }
     });
@@ -500,19 +502,18 @@ async (req, res) => {
 
 /// USERNAME - END
 
-/// GDPR Consent - START
+/// GDPR Consent (Non-personalised Ads) - START
 
-// @route   GET api/db/user/:user_id/gdprConsent
-// @desc    Get user global data updated value by user id
+// @route   GET api/db/user/:user_id/nonPersonalisedAds
 // @access  Private
-router.get('/:user_id/gdprConsent', auth.verifyJWTToken, async (req, res) => {
+router.get('/:user_id/nonPersonalisedAds', auth.verifyJWTToken, async (req, res) => {
   const uid = req.uid;
   const user_id = req.params.user_id;
   if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
   try {
     const data = await UserDataGlobal.findOne({uid: user_id});
     if (!data) return res.status(400).json({ msg: 'User data not found' });
-    res.status(200).json(data.gdprConfirmed);
+    res.status(200).json(data.nonPersonalisedAds);
   } catch (err) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {
@@ -522,7 +523,7 @@ router.get('/:user_id/gdprConsent', auth.verifyJWTToken, async (req, res) => {
   }
 });
 
-router.post('/:user_id/gdprConsent', auth.verifyJWTToken,
+router.post('/:user_id/nonPersonalisedAds', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
   check('timeStamp', 'TimeStamp is required').not().isEmpty(),
@@ -540,7 +541,7 @@ async (req, res) => {
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   const {
-    gdprConsent,
+    nonPersonalisedAds,
     timeStamp,
     updated
   } = req.body;
@@ -552,8 +553,8 @@ async (req, res) => {
     if (!data) {
       return res.status(400).send('User data does not exist');
     }
-    /// Update [gdprConsent] value
-    await UserDataGlobal.updateOne({ uid: uid }, { 'gdprConfirmed': gdprConsent }, function(err, result) {
+    /// Update [nonPersonalisedAds] value
+    await UserDataGlobal.updateOne({ uid: uid }, { 'nonPersonalisedAds': nonPersonalisedAds }, function(err, result) {
       if (err) { return res.status(500).send(err.message); }
     });
     return updateTimeStamp(res, data, timeStamp, updated);
