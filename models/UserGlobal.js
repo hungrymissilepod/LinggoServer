@@ -64,7 +64,7 @@ const UserDataGlobalSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  nonPersonalisedAds: {
+  personalisedAds: {
     type: Boolean,
     default: false,
   },

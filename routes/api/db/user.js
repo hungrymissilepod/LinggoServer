@@ -53,7 +53,7 @@ async (req, res) => {
     onBoardingCompleteTime,
     reviewButtonUnlocked,
     gdprPopupShown,
-    nonPersonalisedAds,
+    personalisedAds,
     globalRank,
     lifetimeEXP,
     coins,
@@ -98,7 +98,7 @@ async (req, res) => {
     onBoardingCompleteTime,
     reviewButtonUnlocked,
     gdprPopupShown,
-    nonPersonalisedAds,
+    personalisedAds,
     globalRank,
     lifetimeEXP,
     coins,
@@ -502,18 +502,18 @@ async (req, res) => {
 
 /// USERNAME - END
 
-/// GDPR Consent (Non-personalised Ads) - START
+/// GDPR Consent (Personalised Ads) - START
 
-// @route   GET api/db/user/:user_id/nonPersonalisedAds
+// @route   GET api/db/user/:user_id/personalisedAds
 // @access  Private
-router.get('/:user_id/nonPersonalisedAds', auth.verifyJWTToken, async (req, res) => {
+router.get('/:user_id/personalisedAds', auth.verifyJWTToken, async (req, res) => {
   const uid = req.uid;
   const user_id = req.params.user_id;
   if (uid != user_id) return res.status(401).json({ msg: 'Not authorized to access this data' });
   try {
     const data = await UserDataGlobal.findOne({uid: user_id});
     if (!data) return res.status(400).json({ msg: 'User data not found' });
-    res.status(200).json(data.nonPersonalisedAds);
+    res.status(200).json(data.personalisedAds);
   } catch (err) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {
@@ -523,7 +523,7 @@ router.get('/:user_id/nonPersonalisedAds', auth.verifyJWTToken, async (req, res)
   }
 });
 
-router.post('/:user_id/nonPersonalisedAds', auth.verifyJWTToken,
+router.post('/:user_id/personalisedAds', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
   check('timeStamp', 'TimeStamp is required').not().isEmpty(),
@@ -541,7 +541,7 @@ async (req, res) => {
   if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
 
   const {
-    nonPersonalisedAds,
+    personalisedAds,
     timeStamp,
     updated
   } = req.body;
@@ -553,8 +553,8 @@ async (req, res) => {
     if (!data) {
       return res.status(400).send('User data does not exist');
     }
-    /// Update [nonPersonalisedAds] value
-    await UserDataGlobal.updateOne({ uid: uid }, { 'nonPersonalisedAds': nonPersonalisedAds }, function(err, result) {
+    /// Update [personalisedAds] value
+    await UserDataGlobal.updateOne({ uid: uid }, { 'personalisedAds': personalisedAds }, function(err, result) {
       if (err) { return res.status(500).send(err.message); }
     });
     return updateTimeStamp(res, data, timeStamp, updated);
