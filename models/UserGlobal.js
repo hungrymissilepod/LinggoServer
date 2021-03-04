@@ -108,7 +108,7 @@ const UserDataGlobalSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  totalUnitsUnlocked: {
+  totalUnitsComplete: {
     type: Number,
     default: 0,
   },
