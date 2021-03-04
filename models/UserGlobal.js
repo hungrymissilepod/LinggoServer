@@ -120,6 +120,10 @@ const UserDataGlobalSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  perfectionistCurrentLessonCount: {
+    type: Number,
+    default: 0,
+  },
   adRequestVideoAdCount: {
     type: Number,
     default: 0,
