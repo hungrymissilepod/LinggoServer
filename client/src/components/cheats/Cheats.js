@@ -13,12 +13,18 @@ const Cheats = () => {
   }, [])
 
   return (
-      <div className='dark-overlay'>
-        <div className='landing-inner'>
-          {code && <div>{code.appName} - {code.appCode}</div>}
-        </div>
-      </div>
+    <div>
+      {code && <div>{code.appName} - {code.appCode}</div>}
+    </div>
   );
+
+  // return (
+  //   <div className='dark-overlay'>
+  //     <div className='landing-inner'>
+  //       {code && <div>{code.appName} - {code.appCode}</div>}
+  //     </div>
+  //   </div>
+  // );
 };
 
 export default connect()(Cheats);
