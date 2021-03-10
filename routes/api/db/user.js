@@ -79,6 +79,7 @@ async (req, res) => {
     languages,
     inventory,
     achievements,
+    configVersionData,
     timeStamp,
     updated,
   } = req.body;
@@ -125,6 +126,7 @@ async (req, res) => {
     languages,
     inventory,
     achievements,
+    configVersionData,
     timeStamp,
     updated,
   }

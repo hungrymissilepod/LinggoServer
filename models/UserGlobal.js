@@ -195,6 +195,13 @@ const UserDataGlobalSchema = new mongoose.Schema({
       completiongotCompletionRewardTimeTime : Number,
     }],
   }],
+  configVersionData: [{
+    type: String,
+    id: String,
+    version: String,
+    build: Number,
+    timeAdded: Number,
+  }],
   timeStamp: {
     type: Number,
     required: true,
