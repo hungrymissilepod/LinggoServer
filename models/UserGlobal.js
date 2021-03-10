@@ -196,11 +196,7 @@ const UserDataGlobalSchema = new mongoose.Schema({
     }],
   }],
   configVersionData: [{
-    type: String,
-    id: String,
-    version: String,
-    build: Number,
-    timeAdded: Number,
+    type: Object,
   }],
   timeStamp: {
     type: Number,
