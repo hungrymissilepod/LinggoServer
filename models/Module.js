@@ -15,6 +15,12 @@ const ModuleSchema = new mongoose.Schema({
   id: {
     type: String,
   },
+  isBonusModule: {
+    type: Boolean,
+  },
+  unitsUnlockedByDefault: [{
+    type: String,
+  }],
   units: [{
     type: Object,
   }],
