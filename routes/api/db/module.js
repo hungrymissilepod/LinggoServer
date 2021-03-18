@@ -37,8 +37,6 @@ async (req, res) => {
     version,
     build,
     id,
-    isBonusModule,
-    unitsUnlockedByDefault,
     units,
     lessons,
   } = req.body;
@@ -48,8 +46,6 @@ async (req, res) => {
     version,
     build,
     id,
-    isBonusModule,
-    unitsUnlockedByDefault,
     units,
     lessons,
     timeStamp,
