@@ -7,11 +7,6 @@ const UserDataGlobal = require('../../../models/UserGlobal');
 const UserDataLang = require('../../../models/UserLang');
 const DailyEXP = require('../../../models/DailyEXP');
 
-const mongoose = require('mongoose');
-const LanguageSchema = require('../../../models/Language');
-
-var langModel = mongoose.model('chineseLanguage', LanguageSchema);
-
 // ------
 // USER GLOBAL DATA
 // ------

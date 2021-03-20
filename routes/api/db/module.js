@@ -5,7 +5,7 @@ const { validationResult, header, query } = require('express-validator');
 
 const mongoose = require('mongoose');
 const ModuleSchema = require('../../../models/Module');
-var ModuleModel = mongoose.model('moduleModel', ModuleSchema, 'EnglishToChineseModuleOne');
+var ModuleModel = mongoose.model('moduleModel', ModuleSchema, 'ChineseModuleOne');
 
 // @route   POST api/db/module
 // @params  module (which module data we are posting)
