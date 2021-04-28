@@ -12,6 +12,20 @@ const DailyEXP = require('../../../models/DailyEXP');
 // USER TOKEN DATA
 // ------
 
+// TODO: add firebase secret middleware to check that only firebase can access it
+router.get('/token/all',
+[],
+async (req, res) => {
+  UserToken.find({}, function(err, users) {
+    var userMap = {};
+
+    users.forEach(function(user) {
+      userMap[user.uid] = user;
+    });
+    res.send(userMap);
+  });
+});
+
 router.post('/token', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
