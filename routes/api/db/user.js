@@ -5,7 +5,70 @@ const { check, validationResult, header } = require('express-validator');
 
 const UserDataGlobal = require('../../../models/UserGlobal');
 const UserDataLang = require('../../../models/UserLang');
+const UserToken = require('../../../models/UserToken');
 const DailyEXP = require('../../../models/DailyEXP');
+
+// ------
+// USER TOKEN DATA
+// ------
+
+router.post('/token', auth.verifyJWTToken,
+[
+  header('uid', 'uid is required').not().isEmpty(),
+],
+async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const uid = req.header('uid');
+
+  // Make sure uid from header matches uid from token. So user can only access their own data
+  if (uid != req.uid) return res.status(401).json({ msg: 'Not authorized to access this data' });
+
+  const {
+    fcmToken,
+    reviewNotificationsOn,
+    reviewNotificationsTime,
+    timeZone,
+    lastLoginTime,
+  } = req.body;
+
+  const userData = {
+    uid,
+    fcmToken,
+    reviewNotificationsOn,
+    reviewNotificationsTime,
+    timeZone,
+    lastLoginTime,
+  }
+
+  try {
+
+    /// Find and update or insert (upsert) user token data
+    /// $addToSet means that we will add this token if it is not already in the [fcmTokens] array
+    let data = await UserToken.findOneAndUpdate(
+      { uid: userData.uid},
+      {
+        $set: {
+          reviewNotificationsOn: userData.reviewNotificationsOn,
+          reviewNotificationsTime: userData.reviewNotificationsTime,
+          timeZone: userData.timeZone,
+          lastLoginTime: userData.lastLoginTime
+        },
+        $addToSet: { fcmTokens: userData.fcmToken },
+      },
+      { upsert: true }
+    );
+
+    return res.status(200).send(data);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 
 // ------
 // USER GLOBAL DATA
