@@ -16,14 +16,13 @@ const DailyEXP = require('../../../models/DailyEXP');
 router.get('/token/all',
 [],
 async (req, res) => {
-  UserToken.find({}, function(err, users) {
-    var userMap = {};
+  let myUsers = [];
 
+  UserToken.find({}, function(err, users) {
     users.forEach(function(user) {
-      userMap[user.uid] = user;
-    });
-    // res.send(userMap);
-    res.send(JSON.stringify(userMap));
+      myUsers.push(user);
+    });    
+    res.send(myUsers);
   });
 });
 
