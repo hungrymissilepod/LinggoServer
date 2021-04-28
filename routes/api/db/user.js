@@ -22,7 +22,8 @@ async (req, res) => {
     users.forEach(function(user) {
       userMap[user.uid] = user;
     });
-    res.send(userMap);
+    // res.send(userMap);
+    res.send(JSON.stringify(userMap));
   });
 });
 
