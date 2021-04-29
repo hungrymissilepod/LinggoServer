@@ -77,11 +77,11 @@ async (req, res) => {
     // console.log(`Current time in: ${zone} - ${hour}`);
     
     /// Get all users in db where reviewNotifications are ON and it is their review time in their local timezone
-    let d1 = await UserToken.find({ reviewNotificationsOn: true, timeZone: zone, reviewNotificationsTime: hour });
-    if (d1.length != 0) {
-      console.log(d1);
-      users.push(d1);
-    }
+    let results = await UserToken.find({ reviewNotificationsOn: true, timeZone: zone, reviewNotificationsTime: hour });
+    results.forEach(function(r) {
+      console.log(r);
+      users.push(r);
+    });
   }));
   res.send(users);
 });
