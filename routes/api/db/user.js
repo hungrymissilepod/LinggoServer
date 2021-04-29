@@ -26,6 +26,34 @@ async (req, res) => {
   });
 });
 
+/// Deletes a fcmToken from user token array. Only Firebase Cloud Function can do this. Not accessible to app.
+router.post('/token/remove-token', auth.verifyFirebaseCloudFunction,
+[
+  header('uid', 'uid is required').not().isEmpty(),
+  header('fcmToken', 'fcmToken is required').not().isEmpty(),
+],
+async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const uid = req.header('uid');
+  const fcmToken = req.header('fcmToken');
+
+  try {
+    let data = await UserToken.findOneAndUpdate(
+      { uid: uid },
+      { $pull: { fcmTokens: fcmToken } },
+      { new: true},
+    );
+    return res.status(200).send(data);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 /// Returns an array of users who need to be sent review notifications now
 router.get('/token/get-users-review-notifications', auth.verifyFirebaseCloudFunction,
 [],
