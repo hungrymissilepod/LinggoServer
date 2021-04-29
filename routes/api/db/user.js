@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../../../middleware/auth');
 const { check, validationResult, header } = require('express-validator');
+var moment = require('moment-timezone');
 
 const UserDataGlobal = require('../../../models/UserGlobal');
 const UserDataLang = require('../../../models/UserLang');
@@ -12,8 +13,7 @@ const DailyEXP = require('../../../models/DailyEXP');
 // USER TOKEN DATA
 // ------
 
-// TODO: add firebase secret middleware to check that only firebase can access it
-router.get('/token/all',
+router.get('/token/all', auth.verifyFirebaseCloudFunction,
 [],
 async (req, res) => {
   let myUsers = [];
@@ -25,6 +25,35 @@ async (req, res) => {
     res.send(myUsers);
   });
 });
+
+/// Returns an array of users who need to be sent review notifications now
+router.get('/token/get-users-review-notifications', auth.verifyFirebaseCloudFunction,
+[],
+async (req, res) => {
+
+  /// Get all timezones
+  zones = moment.tz.names();
+   /// Use Promise.all to wait for all of the timezoens to be checked via MongoDB
+  await Promise.all(zones.map(async (zone) => {
+    /// Convert current time to timezone time and get local hour
+    var hour = moment.utc(moment.now()).tz(zone).hour() + '00';
+    // console.log(`Current time in: ${zone} - ${hour}`);
+    
+    /// Get all users in db where reviewNotifications are ON and it is their review time in their local timezone
+    let d1 = await UserToken.find({ reviewNotificationsOn: true, timeZone: zone, reviewNotificationsTime: hour });
+    if (d1.length != 0) {
+      // console.log(d1);
+      res.send(d1);
+    }
+  }));
+
+  /// If we get here and response heahders have not yet been send it means we have not been sending any user data, so response with 404
+  if (!res.headersSent) {
+    res.status(404).send();
+  }
+});
+
+// TODO: create route to remove a FCM token from user UserToken data
 
 router.post('/token', auth.verifyJWTToken,
 [

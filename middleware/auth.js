@@ -40,4 +40,20 @@ function verifyWhiteListDevice (req, res, next) {
   }
 }
 
-module.exports = { verifyJWTToken, verifyWhiteListDevice }
+function verifyFirebaseCloudFunction (req, res, next) {
+  const secret = req.header('secret');
+
+  // If request doest not have the Firebase secret
+  if (!secret) {
+    return res.status(401).json({ msg: 'No Firebase secret, authorization denied' });
+  }
+
+  // Verify secret
+  if (secret == process.env.FIREBASE_CLOUD_FUNCTIONS_SECRET) {
+    next();
+  } else {
+    res.status(401).json({ msg: 'Secret is not valid' });
+  }
+}
+
+module.exports = { verifyJWTToken, verifyWhiteListDevice, verifyFirebaseCloudFunction }
