@@ -13,7 +13,7 @@ const UserTokenSchema = new mongoose.Schema({
     type: Boolean,
   },
   reviewNotificationsTime: {
-    type: String,
+    type: Number,
   },
   timeZone: {
     type: String,
