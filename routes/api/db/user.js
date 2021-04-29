@@ -66,26 +66,35 @@ router.get('/token/get-users-review-notifications', auth.verifyFirebaseCloudFunc
 [],
 async (req, res) => {
 
+  let users = [];
+
   /// Get all timezones
   zones = moment.tz.names();
    /// Use Promise.all to wait for all of the timezoens to be checked via MongoDB
   await Promise.all(zones.map(async (zone) => {
     /// Convert current time to timezone time and get local hour
-    var hour = moment.utc(moment.now()).tz(zone).hour() + '00';
+    var hour = moment.utc(moment.now()).tz(zone).hour();
     // console.log(`Current time in: ${zone} - ${hour}`);
     
     /// Get all users in db where reviewNotifications are ON and it is their review time in their local timezone
     let d1 = await UserToken.find({ reviewNotificationsOn: true, timeZone: zone, reviewNotificationsTime: hour });
     if (d1.length != 0) {
-      // console.log(d1);
-      res.send(d1);
+      console.log(d1);
+      users.push(d1);
     }
   }));
+  res.send(users);
+});
 
-  /// If we get here and response heahders have not yet been send it means we have not been sending any user data, so response with 404
-  if (!res.headersSent) {
-    res.status(404).send();
-  }
+
+router.get('/token/test',
+[],
+async (req, res) => {
+
+  var hour = moment.utc(moment.now()).tz('Asia/Kolkata').hour() + '00';
+  console.log(hour);
+
+  res.send(200);
 });
 
 // @route   POST api/db/user/token
