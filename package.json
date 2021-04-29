@@ -22,6 +22,8 @@
     "express-validator": "^6.6.1",
     "firebase-tools": "^9.3.0",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33",
     "mongoose": "^5.10.15",
     "request": "^2.88.2"
   },
