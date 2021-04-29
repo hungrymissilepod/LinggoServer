@@ -13,6 +13,9 @@ const DailyEXP = require('../../../models/DailyEXP');
 // USER TOKEN DATA
 // ------
 
+// @route   GET api/db/user/token/all
+// @desc    Gets all users fcm tokens from database. Only Firebase Cloud Function can do this. Not accessible to app. ONLY FOR TESTING!
+// @access  Private
 router.get('/token/all', auth.verifyFirebaseCloudFunction,
 [],
 async (req, res) => {
@@ -26,7 +29,9 @@ async (req, res) => {
   });
 });
 
-/// Deletes a fcmToken from user token array. Only Firebase Cloud Function can do this. Not accessible to app.
+// @route   POST api/db/user/token/remove-token
+// @desc    Deletes a fcmToken from user token array. Only Firebase Cloud Function can do this. Not accessible to app.
+// @access  Private
 router.post('/token/remove-token', auth.verifyFirebaseCloudFunction,
 [
   header('uid', 'uid is required').not().isEmpty(),
@@ -54,7 +59,9 @@ async (req, res) => {
   }
 });
 
-/// Returns an array of users who need to be sent review notifications now
+// @route   GET api/db/user/token/get-users-review-notifications
+// @desc    Returns an array of users who need to be sent review notifications now in their local timezone
+// @access  Private
 router.get('/token/get-users-review-notifications', auth.verifyFirebaseCloudFunction,
 [],
 async (req, res) => {
@@ -81,8 +88,9 @@ async (req, res) => {
   }
 });
 
-// TODO: create route to remove a FCM token from user UserToken data
-
+// @route   POST api/db/user/token
+// @desc    Post user fcm token to database
+// @access  Private
 router.post('/token', auth.verifyJWTToken,
 [
   header('uid', 'uid is required').not().isEmpty(),
@@ -116,6 +124,14 @@ async (req, res) => {
   }
 
   try {
+
+    /// First find if this fcmToken is registered to another user and remove it from their fcmToken array
+    /// This will stop the same device being registered to multiple users
+    /// Find documents where their [uid] does not match this user's uid and their [fcmTokens] array does not contain this fcmToken, and remove that token from the array
+    await UserToken.updateMany(
+      { uid: { $ne: userData.uid }, fcmTokens: { $in: userData.fcmToken }},
+      { $pull: { fcmTokens: userData.fcmToken } },
+    );
 
     /// Find and update or insert (upsert) user token data
     /// $addToSet means that we will add this token if it is not already in the [fcmTokens] array
