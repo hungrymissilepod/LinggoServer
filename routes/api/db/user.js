@@ -113,7 +113,7 @@ async (req, res) => {
       });
     }
   }));
-  res.status(200).send();
+  res.send(users);
 });
 
 router.get('/token/test',
