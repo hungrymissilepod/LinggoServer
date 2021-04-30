@@ -86,6 +86,35 @@ async (req, res) => {
   res.send(users);
 });
 
+// @route   GET api/db/user/token/get-users-days-away
+// @desc    Returns an array of users whose last log in time was between these days
+// @access  Private
+router.get('/token/get-users-days-away', auth.verifyFirebaseCloudFunction,
+[],
+async (req, res) => {
+  const lower = req.header('lower');
+  const upper = req.header('upper');
+  let lowerTime = moment().subtract(3,'days').valueOf();
+  let upperTime = moment().subtract(5,'days').valueOf();
+
+  let users = [];
+
+  zones = moment.tz.names();
+  await Promise.all(zones.map(async (zone) => { /// for each timezone
+    var hour = moment.utc(moment.now()).tz(zone).hour();
+    if (hour === 20) { /// only send these notifications at 8pm
+      // console.log(`Current time in: ${zone} - ${hour}`);
+      
+      /// Find users in this timezone whose last log in time was between these days
+      let results = await UserToken.find({ timeZone: zone, lastLoginTime: { $gt: upperTime, $lt: lowerTime } });
+      results.forEach(function(r) {
+        console.log(r);
+        users.push(r);
+      });
+    }
+  }));
+  res.status(200).send();
+});
 
 router.get('/token/test',
 [],
