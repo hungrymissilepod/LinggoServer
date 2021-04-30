@@ -105,7 +105,7 @@ async (req, res) => {
   zones = moment.tz.names();
   await Promise.all(zones.map(async (zone) => { /// for each timezone
     var hour = moment.utc(moment.now()).tz(zone).hour();
-    if (hour === 20) { /// only send these notifications at 8pm
+    // if (hour === 20) { /// only send these notifications at 8pm
       // console.log(`Current time in: ${zone} - ${hour}`);
       
       /// Find users in this timezone whose last log in time was between these days
@@ -114,8 +114,9 @@ async (req, res) => {
         console.log(r);
         users.push(r);
       });
-    }
+    // }
   }));
+  console.log(users);
   res.send(users);
 });
 
