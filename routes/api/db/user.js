@@ -96,7 +96,10 @@ async (req, res) => {
   const upper = req.header('upper');
   let lowerTime = moment().subtract(lower,'days').valueOf();
   let upperTime = moment().subtract(upper,'days').valueOf();
-
+  console.log('lower:',lower);
+  console.log('upper:',upper);
+  console.log('lowerTime:',lowerTime);
+  console.log('upperTime:',upperTime);
   let users = [];
 
   zones = moment.tz.names();
