@@ -56,6 +56,30 @@ const UserDataGlobalSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  hasReviewedApp: {
+    type: Boolean,
+    default: false,
+  },
+  lastTimeAskedToReviewApp: {
+    type: Number,
+    default: 0,
+  },
+  reviewNotificationsOn: {
+    type: Boolean,
+    default: true,
+  },
+  reviewNotificationTime: {
+    type: Number,
+    default: 19,
+  },
+  lastTimeAskedReviewNotifications: {
+    type: Number,
+    default: 0,
+  },
+  likedOnFacebook: {
+    type: Boolean,
+    default: false,
+  },
   reviewButtonUnlocked: {
     type: Boolean,
     default: false,
