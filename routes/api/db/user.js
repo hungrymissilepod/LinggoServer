@@ -94,8 +94,8 @@ router.get('/token/get-users-days-away', auth.verifyFirebaseCloudFunction,
 async (req, res) => {
   const lower = req.header('lower');
   const upper = req.header('upper');
-  let lowerTime = moment().subtract(3,'days').valueOf();
-  let upperTime = moment().subtract(5,'days').valueOf();
+  let lowerTime = moment().subtract(lower,'days').valueOf();
+  let upperTime = moment().subtract(upper,'days').valueOf();
 
   let users = [];
 
