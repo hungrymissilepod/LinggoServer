@@ -250,13 +250,13 @@ groups_to_display are the list of groups you want to display when the user click
 //   res.status(200).send();
 // });
 
-///* test function to send FCM to specific device
+///* test function to send FCM to specific device. Also get user data so that we can customise the message
 // exports.testFunc = functions.https.onRequest( async (req, res) => {
 
 //   // Get JWT Token so we can talk to server
 //   var response = await axios.get('https://www.api.linggo.io/api/auth/token', { headers: { 'secret': functions.config().cloud_func.secret, 'uid': 'a4meJdw8FlQ9dCNA9LcgDWdCqfB3', 'deviceId': '1', 'exp': '1h' } });
 //   let token = response.data.token;
-//   console.log(`token: ${token}`);
+//   // console.log(`token: ${token}`);
 
 //   /// Get user data
 //   var response2 = await axios.get('https://www.api.linggo.io/api/db/user/global/a4meJdw8FlQ9dCNA9LcgDWdCqfB3', { headers: { 'x-auth-token': token } });
@@ -266,10 +266,10 @@ groups_to_display are the list of groups you want to display when the user click
 
 //   /// Send customised notification to them
 //   await admin.messaging().sendToDevice(
-//     'fGolsZqNTZm277Q6AnLEGl:APA91bEuTaQIogxUY4Gn3pZBK-VwBCWcsKq2K-_jD0GeW_a0eKfqe0Ud5a6j9PZjurjIBlpx981ksMpxyHrtLqplPZExlZ2pM1wxPk_NBeXYCUA-WJ9JCc-nC7zvDxuuwAW4uX2gjtlG',
+//     'eIX2wgXcTweH-TEx9HMIu_:APA91bFW7rsh1KoVz9zsUXLxygZcTF57qU5gfSxOamU1-jSsRZ8c2BdJSyBLzmJy1Y8L6AeLQaUQK9EVLrMQbRKrYvWcR1koZ0l6wEMAOF63JJ5pxIddjN4Mxyiarol6e0PpW_lIEA3w',
 //     {
 //       notification: {
-//         title: 'Test Message',
+//         title: getTitle(),
 //         body: `Please enter your credit card details...`
 //       }
 //     },
@@ -281,6 +281,11 @@ groups_to_display are the list of groups you want to display when the user click
 
 //   res.status(200).send().end();
 // });
+
+// /// Testing to make sure we can do things like this where we randomise the message text
+// function getTitle() {
+//   return 'New Title';
+// }
 
 
 /// Review Notification scheduler. Runs every hour and sends review notifications to users in their local time.
@@ -308,9 +313,83 @@ exports.reviewNotificationScheduler = functions.pubsub.schedule('0 * * * *').onR
         }
       ).then((response) => {
         // console.log('Successfully sent message:', response);
-        console.log('Successfully sent message to user:', user.uid);
+        // console.log('Successfully sent message to user:', user.uid);
       }).catch((error) => {
-        // console.log('Error sent message:', error);
+        console.log('Error sent message:', error);
+        console.log('Error sent message to user:', user.uid);
+        /// For these reasons and maybe others we should remove this token from user's token array
+        if (error.code == 'messaging/invalid-recipient' || error.code == 'messaging/invalid-registration-token' || error.code == 'messaging/registration-token-not-registered') {
+          axios.post('https://www.api.linggo.io/api/db/user/token/remove-token', null, { headers: { 'secret': functions.config().cloud_func.secret, 'uid': user.uid, 'fcmToken': token } });
+        }
+      });
+    });
+  });
+});
+
+/// Send notification to users that have not logged in between 3-6 days
+exports.threeDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * *').onRun(async (context) => {
+  var results = await axios.get('https://www.api.linggo.io/api/db/user/token/get-users-days-away', { headers: { 'secret': functions.config().cloud_func.secret, 'lower': 3, 'upper': 6 } });
+  var jsonStr = JSON.stringify(results.data);
+  var users = JSON.parse(jsonStr);
+
+  /// For each user
+  users.forEach(function(user) {
+    /// For each user FCM tokens
+    user.fcmTokens.forEach(async function(token) {
+      await admin.messaging().sendToDevice(
+        token,
+        {
+          notification: {
+            title: `Let's review!`,
+            body: `You've not practiced Chinese in while. Let's do a lesson now!`
+          }
+        },
+        {
+          contentAvailable: true,
+          priority: 'high'
+        }
+      ).then((response) => {
+        // console.log('Successfully sent message:', response);
+        // console.log('Successfully sent message to user:', user.uid);
+      }).catch((error) => {
+        console.log('Error sent message:', error);
+        console.log('Error sent message to user:', user.uid);
+        /// For these reasons and maybe others we should remove this token from user's token array
+        if (error.code == 'messaging/invalid-recipient' || error.code == 'messaging/invalid-registration-token' || error.code == 'messaging/registration-token-not-registered') {
+          axios.post('https://www.api.linggo.io/api/db/user/token/remove-token', null, { headers: { 'secret': functions.config().cloud_func.secret, 'uid': user.uid, 'fcmToken': token } });
+        }
+      });
+    });
+  });
+});
+
+/// Send notification to users that have not logged in between 7-10 days
+exports.sevenDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * *').onRun(async (context) => {
+  var results = await axios.get('https://www.api.linggo.io/api/db/user/token/get-users-days-away', { headers: { 'secret': functions.config().cloud_func.secret, 'lower': 7, 'upper': 10 } });
+  var jsonStr = JSON.stringify(results.data);
+  var users = JSON.parse(jsonStr);
+
+  /// For each user
+  users.forEach(function(user) {
+    /// For each user FCM tokens
+    user.fcmTokens.forEach(async function(token) {
+      await admin.messaging().sendToDevice(
+        token,
+        {
+          notification: {
+            title: `Let's review!`,
+            body: `You've been away for a while. Let's brush up on your Chinese skills!`
+          }
+        },
+        {
+          contentAvailable: true,
+          priority: 'high'
+        }
+      ).then((response) => {
+        // console.log('Successfully sent message:', response);
+        // console.log('Successfully sent message to user:', user.uid);
+      }).catch((error) => {
+        console.log('Error sent message:', error);
         console.log('Error sent message to user:', user.uid);
         /// For these reasons and maybe others we should remove this token from user's token array
         if (error.code == 'messaging/invalid-recipient' || error.code == 'messaging/invalid-registration-token' || error.code == 'messaging/registration-token-not-registered') {
