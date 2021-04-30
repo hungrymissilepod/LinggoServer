@@ -79,7 +79,7 @@ async (req, res) => {
     /// Get all users in db where reviewNotifications are ON and it is their review time in their local timezone
     let results = await UserToken.find({ reviewNotificationsOn: true, timeZone: zone, reviewNotificationsTime: hour });
     results.forEach(function(r) {
-      console.log(r);
+      // console.log(r);
       users.push(r);
     });
   }));
@@ -96,38 +96,23 @@ async (req, res) => {
   const upper = req.header('upper');
   let lowerTime = moment().subtract(lower,'days').valueOf();
   let upperTime = moment().subtract(upper,'days').valueOf();
-  console.log('lower:',lower);
-  console.log('upper:',upper);
-  console.log('lowerTime:',lowerTime);
-  console.log('upperTime:',upperTime);
   let users = [];
 
   zones = moment.tz.names();
   await Promise.all(zones.map(async (zone) => { /// for each timezone
     var hour = moment.utc(moment.now()).tz(zone).hour();
-    // if (hour === 20) { /// only send these notifications at 8pm
+    if (hour === 20) { /// only send these notifications at 8pm
       // console.log(`Current time in: ${zone} - ${hour}`);
       
       /// Find users in this timezone whose last log in time was between these days
       let results = await UserToken.find({ timeZone: zone, lastLoginTime: { $gt: upperTime, $lt: lowerTime } });
       results.forEach(function(r) {
-        console.log(r);
+        // console.log(r);
         users.push(r);
       });
-    // }
+    }
   }));
-  console.log(users);
   res.send(users);
-});
-
-router.get('/token/test',
-[],
-async (req, res) => {
-
-  var hour = moment.utc(moment.now()).tz('Asia/Kolkata').hour() + '00';
-  console.log(hour);
-
-  res.send(200);
 });
 
 // @route   POST api/db/user/token
