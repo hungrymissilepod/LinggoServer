@@ -254,23 +254,26 @@ groups_to_display are the list of groups you want to display when the user click
 // exports.testFunc = functions.https.onRequest( async (req, res) => {
 
 //   // Get JWT Token so we can talk to server
-//   var response = await axios.get('https://www.api.linggo.io/api/auth/token', { headers: { 'secret': functions.config().cloud_func.secret, 'uid': 'a4meJdw8FlQ9dCNA9LcgDWdCqfB3', 'deviceId': '1', 'exp': '1h' } });
-//   let token = response.data.token;
-//   // console.log(`token: ${token}`);
+  // var response = await axios.get('https://www.api.linggo.io/api/auth/token', { headers: { 'secret': functions.config().cloud_func.secret, 'uid': 'a4meJdw8FlQ9dCNA9LcgDWdCqfB3', 'deviceId': '1', 'exp': '1h' } });
+  // let token = response.data.token;
+  // console.log(`token: ${token}`);
 
 //   /// Get user data
-//   var response2 = await axios.get('https://www.api.linggo.io/api/db/user/global/a4meJdw8FlQ9dCNA9LcgDWdCqfB3', { headers: { 'x-auth-token': token } });
-//   // console.log(response2);
-//   let username = response2.data.username;
-//   console.log(`username: ${username}`);
+  // var response2 = await axios.get('https://www.api.linggo.io/api/db/user/global/a4meJdw8FlQ9dCNA9LcgDWdCqfB3', { headers: { 'x-auth-token': token } });
+  // console.log(response2);
+  // let username = response2.data.username;
+  // console.log(`username: ${username}`);
 
 //   /// Send customised notification to them
 //   await admin.messaging().sendToDevice(
-//     'eIX2wgXcTweH-TEx9HMIu_:APA91bFW7rsh1KoVz9zsUXLxygZcTF57qU5gfSxOamU1-jSsRZ8c2BdJSyBLzmJy1Y8L6AeLQaUQK9EVLrMQbRKrYvWcR1koZ0l6wEMAOF63JJ5pxIddjN4Mxyiarol6e0PpW_lIEA3w',
+//     'f0ZdmmppLE3IkRPP0090ut:APA91bGX1SMq1ecyIxUa2Wh9H40EZN9R7w38cX8m-0hxAPrXqAE4-BMaClpKj3EeeBq0wiTJ9-_Q9_K-1Bc9NQSZZp3CXKuNldgcWQvlmc-g038stcO22ENNX2Cnutw1RGJ1NA7T3Cux',
 //     {
+//       data: {
+//         type: 'review',
+//       },
 //       notification: {
 //         title: getTitle(),
-//         body: `Please enter your credit card details...`
+//         body: `Test message...`
 //       }
 //     },
 //     {
@@ -303,6 +306,9 @@ exports.reviewNotificationScheduler = functions.pubsub.schedule('0 * * * *').onR
       await admin.messaging().sendToDevice(
         token,
         {
+          data: {
+            type: 'review',
+          },
           notification: {
             body: `你好! It's time for your Chinese lesson! Let's go!`
           }
@@ -339,6 +345,9 @@ exports.threeDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
       await admin.messaging().sendToDevice(
         token,
         {
+          data: {
+            type: 'review',
+          },
           notification: {
             title: `Let's review!`,
             body: `You've not practiced Chinese in while. Let's do a lesson now!`
@@ -376,8 +385,11 @@ exports.sevenDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
       await admin.messaging().sendToDevice(
         token,
         {
+          data: {
+            type: 'review',
+          },
           notification: {
-            title: `Let's review!`,
+            title: `Let's practice!`,
             body: `You've been away for a while. Let's brush up on your Chinese skills!`
           }
         },
