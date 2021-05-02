@@ -346,7 +346,7 @@ exports.threeDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
         token,
         {
           data: {
-            type: 'review',
+            type: '3-days-away',
           },
           notification: {
             title: `Let's review!`,
@@ -386,7 +386,7 @@ exports.sevenDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
         token,
         {
           data: {
-            type: 'review',
+            type: '7-days-away',
           },
           notification: {
             title: `Let's practice!`,
