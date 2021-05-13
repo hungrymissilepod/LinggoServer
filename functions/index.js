@@ -290,6 +290,55 @@ groups_to_display are the list of groups you want to display when the user click
 //   return 'New Title';
 // }
 
+// Notification Messages - START ----------------
+
+// Returns a random number. Excluding [max]
+function randomNumber(max) {
+  return Math.floor(Math.random() * max)
+}
+
+function getReviewNotificationMessage() {
+  var r = randomNumber(3);
+  switch (r) {
+    case 0:
+      return { body: `你好! It's time for your Chinese lesson! Let's go!` };
+    case 1:
+      return { body: `Have you practiced Chinese today? Let's do a lesson now!` };
+    case 2:
+      return { body: `你好! Do you remember what that means? Let's practice now!` };
+    default:
+      return { body: `你好! It's time for your Chinese lesson! Let's go!` };
+  }
+}
+
+function getThreeDaysAwayNotificationMessage() {
+  var r = randomNumber(3);
+  switch (r) {
+    case 0:
+      return { title: `Let's review!`, body: `You've not practiced Chinese in while. Let's do a lesson now!` };
+    case 1:
+      return { title: `Have you been away?`, body: `Need a refresher? Let's practice Chinese now!` };
+    case 2:
+      return { title: `Get motivated!`, body: `Learning Chinese requires lots of practice. Let's do a lesson now!` };
+    default:
+      return { title: `Let's review!`, body: `You've not practiced Chinese in while. Let's do a lesson now!` };
+  }
+}
+
+function getSevenDaysAwayNotificationMessage() {
+  var r = randomNumber(3);
+  switch (r) {
+    case 0:
+      return { title: `Let's practice!`, body: `You've been away for a while. Let's brush up on your Chinese skills!` };
+    case 1:
+      return { title: `Are you there?`, body: `Do you still want to learn Chinese? Let's get back into the swing of things!` };
+    case 2:
+      return { title: `Don't give up!`, body: `Let's master Chinese together!` };
+    default:
+      return { title: `Let's practice!`, body: `You've been away for a while. Let's brush up on your Chinese skills!` };
+  }
+}
+// Notification Messages - END ----------------
 
 /// Review Notification scheduler. Runs every hour and sends review notifications to users in their local time.
 exports.reviewNotificationScheduler = functions.pubsub.schedule('0 * * * *').onRun(async (context) => {
@@ -301,6 +350,7 @@ exports.reviewNotificationScheduler = functions.pubsub.schedule('0 * * * *').onR
 
   /// For each user
   users.forEach(function(user) {
+    var message = getReviewNotificationMessage();
     /// For each user FCM tokens
     user.fcmTokens.forEach(async function(token) {
       await admin.messaging().sendToDevice(
@@ -310,7 +360,7 @@ exports.reviewNotificationScheduler = functions.pubsub.schedule('0 * * * *').onR
             type: 'review',
           },
           notification: {
-            body: `你好! It's time for your Chinese lesson! Let's go!`
+            body: message.body,
           }
         },
         {
@@ -340,6 +390,7 @@ exports.threeDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
 
   /// For each user
   users.forEach(function(user) {
+    var message = getThreeDaysAwayNotificationMessage();
     /// For each user FCM tokens
     user.fcmTokens.forEach(async function(token) {
       await admin.messaging().sendToDevice(
@@ -349,8 +400,8 @@ exports.threeDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
             type: '3-days-away',
           },
           notification: {
-            title: `Let's review!`,
-            body: `You've not practiced Chinese in while. Let's do a lesson now!`
+            title: message.title,
+            body: message.body,
           }
         },
         {
@@ -380,6 +431,7 @@ exports.sevenDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
 
   /// For each user
   users.forEach(function(user) {
+    var message = getSevenDaysAwayNotificationMessage();
     /// For each user FCM tokens
     user.fcmTokens.forEach(async function(token) {
       await admin.messaging().sendToDevice(
@@ -389,8 +441,8 @@ exports.sevenDaysAwayNotificationScheduler = functions.pubsub.schedule('0 * * * 
             type: '7-days-away',
           },
           notification: {
-            title: `Let's practice!`,
-            body: `You've been away for a while. Let's brush up on your Chinese skills!`
+            title: message.title,
+            body: message.body,
           }
         },
         {
