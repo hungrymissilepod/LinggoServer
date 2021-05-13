@@ -298,14 +298,16 @@ function randomNumber(max) {
 }
 
 function getReviewNotificationMessage() {
-  var r = randomNumber(3);
+  var r = randomNumber(4);
   switch (r) {
     case 0:
       return { body: `你好! It's time for your Chinese lesson! Let's go!` };
     case 1:
-      return { body: `Have you practiced Chinese today? Let's do a lesson now!` };
+      return { body: `Have you practiced Chinese today? 🇨🇳  Let's do a lesson now!` };
     case 2:
       return { body: `你好! Do you remember what that means? Let's practice now!` };
+    case 3:
+      return { body: `🧠  Let's review what you have learnt!` };
     default:
       return { body: `你好! It's time for your Chinese lesson! Let's go!` };
   }
@@ -339,6 +341,36 @@ function getSevenDaysAwayNotificationMessage() {
   }
 }
 // Notification Messages - END ----------------
+
+// Emojis - START ----------------
+/*
+
+Resources:
+https://www.unicode.org/emoji/charts/full-emoji-list.html
+https://unicode-table.com/en/ 
+
+Tick - U+2705 (talking about lessons)
+Upwards Chart - U+1F4C8 (talking about user progress) "You have improved so much this week", "Here is your weekly improvements"
+Open Book - U+1F4D6 (talking about reviewing)
+Blue Book - U+1F4D8 (talking about reviewing)
+Studio Microphone - U+1F399 (could use for announcing speaking lessons)
+Bell - U+1F514 (like a notification bell, for announcements)
+Graduation Cap - U+1F393 (talk about learning, or comleting something)
+Shinto Shrine - U+26E9 (Japan focused. Could talk about new Japanese course)
+Octopus - U+1F419 (bringing in mascot character. Octopus emoji is pretty ugly though)
+Speaking Head - U+1F5E3 (talking about speaking lessons. talk about speaking like a native?)
+Student - U+1F9D1 U+200D U+1F393 (talking about graduation, completing something)
+Brain - U+1F9E0 (talk about reviewing, remembering)
+Waving Hand - U+1F44B (hello, been away, announcements)
+Coin - U+1FA99 (talk about earning coins, coin is not gold on Apple devices though)
+
+Flags:
+China - U+1F1E8 U+1F1F3
+Japan - U+1F1EF U+1F1F5
+Korea - U+1F1F0 U+1F1F7
+
+*/
+// Emojis - END ----------------
 
 /// Review Notification scheduler. Runs every hour and sends review notifications to users in their local time.
 exports.reviewNotificationScheduler = functions.pubsub.schedule('0 * * * *').onRun(async (context) => {
